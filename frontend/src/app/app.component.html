@@ -1,0 +1,106 @@
+<div class="container mt-4">
+  <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+      <span class="material-icons me-2">search</span>
+      <span class="fs-4">ClipSearch</span>
+    </a>
+
+    <ul class="nav nav-pills">
+      <li class="nav-item"><a (click)="setTab('search')" class="nav-link" [class.active]="activeTab === 'search'" style="cursor: pointer;">Search</a></li>
+      <li class="nav-item"><a (click)="setTab('upload')" class="nav-link" [class.active]="activeTab === 'upload'" style="cursor: pointer;">Upload</a></li>
+      <li class="nav-item"><a (click)="setTab('recent')" class="nav-link" [class.active]="activeTab === 'recent'" style="cursor: pointer;">Recent</a></li>
+    </ul>
+  </header>
+
+  <!-- SEARCH TAB -->
+  <div *ngIf="activeTab === 'search'">
+    <div class="row mb-4">
+      <div class="col">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Search by filename or content..." [(ngModel)]="searchQuery" (keyup.enter)="search()">
+          <button class="btn btn-primary" type="button" (click)="search()" [disabled]="searching">
+            <span *ngIf="searching" class="spinner-border spinner-border-sm me-1"></span>
+            Search
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="searchResults.items.length > 0" class="list-group">
+      <div *ngFor="let item of searchResults.items" class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{ item.filename }}</h5>
+          <small class="text-muted">{{ item.uploadedAt | date:'short' }}</small>
+        </div>
+        <p class="mb-1 text-truncate" *ngIf="item.content">{{ item.content }}</p>
+        <small class="text-muted">
+          Type: {{ item.contentType }} | Size: {{ formatSize(item.sizeBytes) }} | 
+          Tags: <span *ngFor="let tag of item.tags" class="badge bg-secondary me-1">{{ tag }}</span>
+        </small>
+      </div>
+    </div>
+
+    <div *ngIf="searchResults.items.length === 0 && !searching" class="text-center mt-5 text-muted">
+      <p>No results found. Try a different query.</p>
+    </div>
+  </div>
+
+  <!-- UPLOAD TAB -->
+  <div *ngIf="activeTab === 'upload'" class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Upload New File</h5>
+          <div class="mb-3">
+            <label for="fileInput" class="form-label">Select File</label>
+            <input class="form-control" type="file" id="fileInput" (change)="onFileSelected($event)">
+          </div>
+          <div class="mb-3">
+            <label for="tagsInput" class="form-label">Tags (comma separated)</label>
+            <input type="text" class="form-control" id="tagsInput" placeholder="e.g. docs, manual, 2024" [(ngModel)]="tags">
+          </div>
+          <button class="btn btn-success w-100" (click)="upload()" [disabled]="!selectedFile || uploading">
+            <span *ngIf="uploading" class="spinner-border spinner-border-sm me-1"></span>
+            Upload to S3
+          </button>
+          <div *ngIf="uploadStatus" class="mt-3 alert" [class.alert-info]="uploading" [class.alert-success]="uploadStatus.startsWith('Success')" [class.alert-danger]="uploadStatus.startsWith('Error')">
+            {{ uploadStatus }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECENT TAB -->
+  <div *ngIf="activeTab === 'recent'">
+    <h3>Recent Uploads</h3>
+    <div *ngIf="loadingRecent" class="text-center mt-4">
+      <div class="spinner-border text-primary" role="status"></div>
+    </div>
+    <table *ngIf="!loadingRecent && recentUploads.length > 0" class="table table-hover mt-3">
+      <thead>
+        <tr>
+          <th>Filename</th>
+          <th>Type</th>
+          <th>Size</th>
+          <th>Uploaded At</th>
+          <th>Tags</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of recentUploads">
+          <td>{{ item.filename }}</td>
+          <td><code>{{ item.contentType }}</code></td>
+          <td>{{ formatSize(item.sizeBytes) }}</td>
+          <td>{{ item.uploadedAt | date:'short' }}</td>
+          <td>
+            <span *ngFor="let tag of item.tags" class="badge bg-secondary me-1">{{ tag }}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="!loadingRecent && recentUploads.length === 0" class="text-center mt-5 text-muted">
+      <p>No files uploaded yet.</p>
+    </div>
+  </div>
+</div>

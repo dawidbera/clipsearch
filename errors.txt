@@ -1,0 +1,149 @@
+Sending build context to Docker daemon  52.74kB
+Step 1/20 : FROM registry.access.redhat.com/ubi8/openjdk-17:1.20 AS build
+ ---> e1a785356839
+Step 2/20 : USER root
+ ---> Using cache
+ ---> c9db8ccc549f
+Step 3/20 : COPY . /code/
+ ---> Using cache
+ ---> c9c8a4412346
+Step 4/20 : WORKDIR /code
+ ---> Using cache
+ ---> 2c15f8661eee
+Step 5/20 : FROM maven:3.9.6-eclipse-temurin-17 AS builder
+ ---> b86805e902bf
+Step 6/20 : WORKDIR /app
+ ---> Using cache
+ ---> 883ef3f4febf
+Step 7/20 : COPY pom.xml .
+ ---> Using cache
+ ---> b40eaff055e0
+Step 8/20 : COPY common /app/common
+ ---> Using cache
+ ---> 5e56658ee740
+Step 9/20 : COPY api /app/api
+ ---> Using cache
+ ---> d929f6b9b93a
+Step 10/20 : COPY worker /app/worker
+ ---> Using cache
+ ---> 6e85f93c10ef
+Step 11/20 : RUN mvn clean package -DskipTests -pl api -am
+ ---> Using cache
+ ---> 2bd67e164fd7
+Step 12/20 : FROM registry.access.redhat.com/ubi8/openjdk-17:1.20
+ ---> e1a785356839
+Step 13/20 : ENV LANGUAGE='en_US:en'
+ ---> Using cache
+ ---> 0315c9c12bcf
+Step 14/20 : COPY --from=builder /app/api/target/quarkus-app/lib/ /deployments/lib/
+ ---> Using cache
+ ---> b070f315187e
+Step 15/20 : COPY --from=builder /app/api/target/quarkus-app/*.jar /deployments/
+ ---> Using cache
+ ---> cc304e687fdb
+Step 16/20 : COPY --from=builder /app/api/target/quarkus-app/app/ /deployments/app/
+ ---> Using cache
+ ---> 05b637515fb8
+Step 17/20 : COPY --from=builder /app/api/target/quarkus-app/quarkus/ /deployments/quarkus/
+ ---> Using cache
+ ---> 89665354c497
+Step 18/20 : EXPOSE 8080
+ ---> Using cache
+ ---> 4ade372e2be9
+Step 19/20 : USER 1001
+ ---> Using cache
+ ---> 9d1d44aecc75
+Step 20/20 : ENTRYPOINT ["java", "-jar", "/deployments/quarkus-run.jar"]
+ ---> Using cache
+ ---> ef447c43659e
+Successfully built ef447c43659e
+Successfully tagged clipsearch_api:latest
+Sending build context to Docker daemon  52.74kB
+Step 1/15 : FROM maven:3.9.6-eclipse-temurin-17 AS builder
+ ---> b86805e902bf
+Step 2/15 : WORKDIR /app
+ ---> Using cache
+ ---> 883ef3f4febf
+Step 3/15 : COPY pom.xml .
+ ---> Using cache
+ ---> b40eaff055e0
+Step 4/15 : COPY common /app/common
+ ---> Using cache
+ ---> 5e56658ee740
+Step 5/15 : COPY api /app/api
+ ---> Using cache
+ ---> d929f6b9b93a
+Step 6/15 : COPY worker /app/worker
+ ---> Using cache
+ ---> 6e85f93c10ef
+Step 7/15 : RUN mvn clean package -DskipTests -pl worker -am
+ ---> Using cache
+ ---> 842f3359c0c2
+Step 8/15 : FROM registry.access.redhat.com/ubi8/openjdk-17:1.20
+ ---> e1a785356839
+Step 9/15 : ENV LANGUAGE='en_US:en'
+ ---> Using cache
+ ---> 0315c9c12bcf
+Step 10/15 : COPY --from=builder /app/worker/target/quarkus-app/lib/ /deployments/lib/
+ ---> Using cache
+ ---> 8f2b1f76aa03
+Step 11/15 : COPY --from=builder /app/worker/target/quarkus-app/*.jar /deployments/
+ ---> Using cache
+ ---> 75706b5750e2
+Step 12/15 : COPY --from=builder /app/worker/target/quarkus-app/app/ /deployments/app/
+ ---> Using cache
+ ---> 34d35dadc4cf
+Step 13/15 : COPY --from=builder /app/worker/target/quarkus-app/quarkus/ /deployments/quarkus/
+ ---> Using cache
+ ---> 35b2d3f20d86
+Step 14/15 : USER 1001
+ ---> Using cache
+ ---> 87337b336b4a
+Step 15/15 : ENTRYPOINT ["java", "-jar", "/deployments/quarkus-run.jar"]
+ ---> Using cache
+ ---> 18b5be7b6e17
+Successfully built 18b5be7b6e17
+Successfully tagged clipsearch_worker:latest
+Sending build context to Docker daemon  287.6MB
+Step 1/14 : FROM node:20 AS builder
+ ---> 0bbc9ccc88e2
+Step 2/14 : WORKDIR /app
+ ---> Using cache
+ ---> 6f14e2334d6d
+Step 3/14 : COPY package*.json ./
+ ---> Using cache
+ ---> 5171bf01a9c2
+Step 4/14 : RUN npm ci
+ ---> Using cache
+ ---> 5042308a9f76
+Step 5/14 : COPY . .
+ ---> Using cache
+ ---> 58fe97a6c64b
+Step 6/14 : RUN npm run build
+ ---> Using cache
+ ---> d02329c5f876
+Step 7/14 : FROM nginxinc/nginx-unprivileged:stable-alpine
+ ---> 4a0915357175
+Step 8/14 : USER root
+ ---> Using cache
+ ---> fef2c6bcc440
+Step 9/14 : COPY --from=builder /app/dist/frontend/browser /usr/share/nginx/html
+ ---> Using cache
+ ---> 0893b01f1ebd
+Step 10/14 : COPY nginx.conf /etc/nginx/conf.d/default.conf
+ ---> Using cache
+ ---> c742c2b144bb
+Step 11/14 : RUN echo '{"apiUrl": "/api"}' > /usr/share/nginx/html/config.json &&     chown 101:101 /usr/share/nginx/html/config.json
+ ---> Using cache
+ ---> 9c9fab39e14b
+Step 12/14 : USER 101
+ ---> Using cache
+ ---> ae3086622a2a
+Step 13/14 : EXPOSE 8080
+ ---> Using cache
+ ---> a6d25a85d1cd
+Step 14/14 : CMD ["nginx", "-g", "daemon off;"]
+ ---> Using cache
+ ---> 13feb0c6c487
+Successfully built 13feb0c6c487
+Successfully tagged clipsearch_frontend:latest

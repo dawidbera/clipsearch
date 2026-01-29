@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: localstack-init
+  namespace: clipsearch
+data:
+  init-aws.sh: |
+    #!/bin/bash
+    echo "Initializing LocalStack resources..."
+    awslocal s3 mb s3://clipsearch || true
+    awslocal sqs create-queue --queue-name clipsearch-index-queue || true
+    echo "Initialization complete."

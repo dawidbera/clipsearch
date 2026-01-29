@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: clipsearch
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clipsearch-config
+  namespace: clipsearch
+data:
+  S3_ENDPOINT: "http://localstack:4566"
+  SQS_ENDPOINT: "http://localstack:4566"
+  ES_URL: "http://elasticsearch:9200"
+  S3_BUCKET: "clipsearch"
+  SQS_QUEUE_NAME: "clipsearch-index-queue"
+  ALLOWED_ORIGINS: "*"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: clipsearch-aws-secret
+  namespace: clipsearch
+stringData:
+  AWS_ACCESS_KEY_ID: "test"
+  AWS_SECRET_ACCESS_KEY: "test"
+  AWS_REGION: "us-east-1"

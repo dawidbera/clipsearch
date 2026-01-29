@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clipsearch-frontend
+  namespace: clipsearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clipsearch-frontend
+  template:
+    metadata:
+      labels:
+        app: clipsearch-frontend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+      containers:
+        - name: clipsearch-frontend
+          image: ghcr.io/dawidbera/clipsearch-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "250m"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clipsearch-frontend
+  namespace: clipsearch
+spec:
+  selector:
+    app: clipsearch-frontend
+  ports:
+    - port: 8080
+      targetPort: 8080

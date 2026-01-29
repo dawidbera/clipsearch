@@ -1,0 +1,29 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: clipsearch-frontend
+  namespace: clipsearch
+spec:
+  to:
+    kind: Service
+    name: clipsearch-frontend
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: clipsearch-api
+  namespace: clipsearch
+spec:
+  to:
+    kind: Service
+    name: clipsearch-api
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

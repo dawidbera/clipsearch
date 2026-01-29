@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clipsearch-api
+  namespace: clipsearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clipsearch-api
+  template:
+    metadata:
+      labels:
+        app: clipsearch-api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+        - name: clipsearch-api
+          image: ghcr.io/dawidbera/clipsearch-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: clipsearch-config
+            - secretRef:
+                name: clipsearch-aws-secret
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /q/health/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /q/health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clipsearch-api
+  namespace: clipsearch
+spec:
+  selector:
+    app: clipsearch-api
+  ports:
+    - port: 8080
+      targetPort: 8080
