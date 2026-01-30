@@ -13,12 +13,9 @@ spec:
       labels:
         app: clipsearch-frontend
     spec:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 101
       containers:
         - name: clipsearch-frontend
-          image: ghcr.io/dawidbera/clipsearch-frontend:latest
+          image: ghcr.io/dawidbera/clipsearch-frontend:1d4893fe2fe1de23bb85ba29dda7150856fb848b
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

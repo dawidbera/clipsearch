@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: clipsearch-worker
-          image: ghcr.io/dawidbera/clipsearch-worker:latest
+          image: ghcr.io/dawidbera/clipsearch-worker:1d4893fe2fe1de23bb85ba29dda7150856fb848b
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
