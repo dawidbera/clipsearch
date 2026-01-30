@@ -19,8 +19,14 @@ spec:
           env:
             - name: SERVICES
               value: "s3,sqs"
-            - name: DEBUG
-              value: "0"
+            - name: DATA_DIR
+              value: "/tmp/localstack/data"
+            - name: LS_LOG
+              value: "debug"
+            - name: LOCALSTACK_HOST
+              value: "localstack"
+            - name: HOME
+              value: "/tmp"
           ports:
             - containerPort: 4566
           resources:
@@ -41,9 +47,13 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 20
           volumeMounts:
+            - name: tmp-storage
+              mountPath: /tmp
             - name: init-scripts
               mountPath: /etc/localstack/init/ready.d
       volumes:
+        - name: tmp-storage
+          emptyDir: {}
         - name: init-scripts
           configMap:
             name: localstack-init
