@@ -62,4 +62,8 @@ export class ApiService {
       params: new HttpParams().set('limit', limit.toString())
     });
   }
+
+  getDownloadUrl(id: string): Observable<{url: string}> {
+    return this.http.get<{url: string}>(`${this.apiUrl}/uploads/${id}/download`);
+  }
 }

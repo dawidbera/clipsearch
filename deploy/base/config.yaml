@@ -1,9 +1,4 @@
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: clipsearch
----
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: clipsearch-config
@@ -15,6 +10,8 @@ data:
   S3_BUCKET: "clipsearch"
   SQS_QUEUE_NAME: "clipsearch-index-queue"
   ALLOWED_ORIGINS: "*"
+  RHOAI_BASE_URL: "https://llm-model-dawidbera-dev.apps.rm2.thpm.p1.openshiftapps.com/v1"
+  RHOAI_MODEL_NAME: "llm-model"
 ---
 apiVersion: v1
 kind: Secret

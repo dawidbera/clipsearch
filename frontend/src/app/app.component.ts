@@ -24,6 +24,12 @@ export class AppComponent implements OnInit {
   searchQuery = '';
   searchResults: SearchResult = { items: [], total: 0, page: 0, size: 10 };
   searching = false;
+  currentPage = 0;
+  pageSize = 10;
+
+  // Filters
+  filterContentType = '';
+  filterTag = '';
 
   // Recent Uploads State
   recentUploads: any[] = [];
@@ -65,16 +71,51 @@ export class AppComponent implements OnInit {
     });
   }
 
-  search() {
+  search(page: number = 0) {
     this.searching = true;
-    this.api.search(this.searchQuery).subscribe({
+    this.currentPage = page;
+    this.api.search(this.searchQuery, this.filterContentType, this.filterTag, this.currentPage, this.pageSize).subscribe({
       next: (res) => {
         this.searchResults = res;
+        this.searchResults.page = this.currentPage;
         this.searching = false;
       },
       error: (err) => {
         console.error(err);
         this.searching = false;
+      }
+    });
+  }
+
+  clearFilters() {
+    this.filterContentType = '';
+    this.filterTag = '';
+    this.search(0);
+  }
+
+  nextPage() {
+    if ((this.currentPage + 1) * this.pageSize < this.searchResults.total) {
+      this.search(this.currentPage + 1);
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage > 0) {
+      this.search(this.currentPage - 1);
+    }
+  }
+
+  getTotalPages() {
+    return Math.ceil(this.searchResults.total / this.pageSize);
+  }
+
+  downloadFile(id: string) {
+    this.api.getDownloadUrl(id).subscribe({
+      next: (res) => {
+        window.open(res.url, '_blank');
+      },
+      error: (err) => {
+        alert('Error getting download URL: ' + err.message);
       }
     });
   }

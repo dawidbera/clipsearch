@@ -1,5 +1,4 @@
-## Stage 1: Build
-FROM maven:3.9.6-eclipse-temurin-17 AS builder
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY pom.xml .
 COPY common /app/common
@@ -7,13 +6,16 @@ COPY api /app/api
 COPY worker /app/worker
 RUN mvn clean package -DskipTests -pl worker -am
 
-## Stage 2: Run
-FROM registry.access.redhat.com/ubi8/openjdk-17:1.20
-ENV LANGUAGE='en_US:en'
-COPY --from=builder /app/worker/target/quarkus-app/lib/ /deployments/lib/
-COPY --from=builder /app/worker/target/quarkus-app/*.jar /deployments/
-COPY --from=builder /app/worker/target/quarkus-app/app/ /deployments/app/
-COPY --from=builder /app/worker/target/quarkus-app/quarkus/ /deployments/quarkus/
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.3
+RUN microdnf install -y java-17-openjdk-headless && microdnf clean all
 
+WORKDIR /work/
+COPY --from=build /app/worker/target/quarkus-app/lib/ /work/lib/
+COPY --from=build /app/worker/target/quarkus-app/*.jar /work/
+COPY --from=build /app/worker/target/quarkus-app/app/ /work/app/
+COPY --from=build /app/worker/target/quarkus-app/quarkus/ /work/quarkus/
+
+EXPOSE 8080
 USER 1001
-ENTRYPOINT ["java", "-jar", "/deployments/quarkus-run.jar"]
+
+CMD ["java", "-jar", "quarkus-run.jar"]

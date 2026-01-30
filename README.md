@@ -1,14 +1,20 @@
 # ClipSearch 📎🔍
 
-ClipSearch is a modern, asynchronous document search engine built with a microservices architecture. It allows uploading files (text and PDF), automatically extracting their content, and performing lightning-fast full-text searches.
+ClipSearch is a modern, asynchronous document search engine built with a microservices architecture. It allows uploading files (text, PDF, and images), automatically extracting their content using OCR, and generating **AI-powered summaries** using a local LLM.
+
+## 🌟 Key Features
+- **AI Summarization:** Get concise, 2-3 bullet point summaries of your documents automatically, powered by **local Phi-3 model via Ollama**.
+- **OCR Support:** Extract text from images (PNG, JPG) in English and German using **Tesseract**.
+- **Full-Text Search:** High-performance search for TXT and PDF documents via **Elasticsearch**.
+- **Data Persistence:** Persistent storage for the search index using Kubernetes PVCs.
+- **Microservices Architecture:** Scalable design with Quarkus (API & Worker), S3, and SQS.
 
 ## 🚀 Quick Start (Local Dev)
 
-The project uses **Docker Compose** to spin up the entire infrastructure with a single command.
-
 ### Prerequisites
 - Docker & Docker Compose
-- A web browser
+- **Ollama** installed on your host machine (for AI features)
+  - Run `ollama pull phi3:mini`
 
 ### Running the App
 1. Clone the repository:
@@ -20,44 +26,16 @@ The project uses **Docker Compose** to spin up the entire infrastructure with a 
    ```bash
    docker-compose up --build
    ```
-3. Open in your browser:
-   - **Frontend:** [http://localhost:4200](http://localhost:4200)
-   - **API (Swagger/Health):** [http://localhost:8080/q/dev](http://localhost:8080/q/dev)
+3. Open in your browser: [http://localhost:4200](http://localhost:4200)
 
 ## 🏗️ Architecture
 
-The application consists of the following components:
-
-1.  **Frontend (Angular):** A clean user interface for uploading and searching.
-2.  **API Service (Quarkus):** Accepts files, saves them to S3, and sends notifications to an SQS queue.
-3.  **Worker Service (Quarkus):** Asynchronously retrieves tasks from SQS, extracts text from documents (Apache Tika), and indexes them in Elasticsearch.
-4.  **LocalStack:** Emulates AWS services (S3, SQS) locally.
-5.  **Elasticsearch:** A powerful full-text search engine.
-
-## 🛠️ Technologies
-
-- **Backend:** Java 17, Quarkus, Apache Tika
-- **Frontend:** Angular 17, Bootstrap
-- **Infrastructure:** LocalStack (S3, SQS), Elasticsearch 8.x, Docker
-- **CI/CD:** GitHub Actions (automatic build and push to GHCR)
-
-## 📁 Project Structure
-
-```text
-clipsearch/
-├── backend/            # API and Worker source code (Maven)
-├── frontend/           # Angular application
-├── deploy/             # Kubernetes / OpenShift manifests
-├── scripts/            # Helper scripts (AWS initialization)
-└── docker-compose.yml  # Local environment definition
-```
-
-## 🌐 Deployment on OpenShift
-
-The project is ready for deployment on the **OpenShift Developer Sandbox**:
-```bash
-oc apply -k deploy/overlays/openshift-sandbox
-```
+1.  **Frontend (Angular):** Clean UI with pagination, filtering, and file downloads.
+2.  **API (Quarkus):** Handles S3 uploads and pre-signed download URLs.
+3.  **Worker (Quarkus):** Processes documents, performs OCR, and calls **local AI** for summarization.
+4.  **Elasticsearch:** Search engine with persistent volumes.
+5.  **LocalStack:** AWS S3/SQS emulator.
+6.  **Ollama (Host):** Local LLM engine for document summarization.
 
 ---
 Created by [dawidbera](https://github.com/dawidbera)

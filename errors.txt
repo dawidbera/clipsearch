@@ -1,4 +1,4 @@
-Sending build context to Docker daemon  52.74kB
+Sending build context to Docker daemon  143.4kB
 Step 1/20 : FROM registry.access.redhat.com/ubi8/openjdk-17:1.20 AS build
  ---> e1a785356839
 Step 2/20 : USER root
@@ -6,10 +6,10 @@ Step 2/20 : USER root
  ---> c9db8ccc549f
 Step 3/20 : COPY . /code/
  ---> Using cache
- ---> c9c8a4412346
+ ---> b1dc3fd6875d
 Step 4/20 : WORKDIR /code
  ---> Using cache
- ---> 2c15f8661eee
+ ---> 4423fe762f37
 Step 5/20 : FROM maven:3.9.6-eclipse-temurin-17 AS builder
  ---> b86805e902bf
 Step 6/20 : WORKDIR /app
@@ -20,16 +20,16 @@ Step 7/20 : COPY pom.xml .
  ---> b40eaff055e0
 Step 8/20 : COPY common /app/common
  ---> Using cache
- ---> 5e56658ee740
+ ---> 7575a49ebb50
 Step 9/20 : COPY api /app/api
  ---> Using cache
- ---> d929f6b9b93a
+ ---> ce9a9f74a3a4
 Step 10/20 : COPY worker /app/worker
  ---> Using cache
- ---> 6e85f93c10ef
+ ---> 2997765b11cf
 Step 11/20 : RUN mvn clean package -DskipTests -pl api -am
  ---> Using cache
- ---> 2bd67e164fd7
+ ---> 14022e849b3c
 Step 12/20 : FROM registry.access.redhat.com/ubi8/openjdk-17:1.20
  ---> e1a785356839
 Step 13/20 : ENV LANGUAGE='en_US:en'
@@ -37,113 +37,241 @@ Step 13/20 : ENV LANGUAGE='en_US:en'
  ---> 0315c9c12bcf
 Step 14/20 : COPY --from=builder /app/api/target/quarkus-app/lib/ /deployments/lib/
  ---> Using cache
- ---> b070f315187e
+ ---> a26ebe84b205
 Step 15/20 : COPY --from=builder /app/api/target/quarkus-app/*.jar /deployments/
  ---> Using cache
- ---> cc304e687fdb
+ ---> cdeeafd9c20b
 Step 16/20 : COPY --from=builder /app/api/target/quarkus-app/app/ /deployments/app/
  ---> Using cache
- ---> 05b637515fb8
+ ---> 25289544ab45
 Step 17/20 : COPY --from=builder /app/api/target/quarkus-app/quarkus/ /deployments/quarkus/
  ---> Using cache
- ---> 89665354c497
+ ---> 34162fc8af43
 Step 18/20 : EXPOSE 8080
  ---> Using cache
- ---> 4ade372e2be9
+ ---> fa75dfe02b43
 Step 19/20 : USER 1001
  ---> Using cache
- ---> 9d1d44aecc75
+ ---> 63e6bb69d215
 Step 20/20 : ENTRYPOINT ["java", "-jar", "/deployments/quarkus-run.jar"]
  ---> Using cache
- ---> ef447c43659e
-Successfully built ef447c43659e
+ ---> 6d2f77df8ea9
+Successfully built 6d2f77df8ea9
 Successfully tagged clipsearch_api:latest
-Sending build context to Docker daemon  52.74kB
-Step 1/15 : FROM maven:3.9.6-eclipse-temurin-17 AS builder
+Sending build context to Docker daemon  143.4kB
+Step 1/17 : FROM maven:3.9.6-eclipse-temurin-17 AS build
  ---> b86805e902bf
-Step 2/15 : WORKDIR /app
+Step 2/17 : WORKDIR /app
  ---> Using cache
  ---> 883ef3f4febf
-Step 3/15 : COPY pom.xml .
+Step 3/17 : COPY pom.xml .
  ---> Using cache
  ---> b40eaff055e0
-Step 4/15 : COPY common /app/common
+Step 4/17 : COPY common /app/common
  ---> Using cache
- ---> 5e56658ee740
-Step 5/15 : COPY api /app/api
+ ---> 7575a49ebb50
+Step 5/17 : COPY api /app/api
  ---> Using cache
- ---> d929f6b9b93a
-Step 6/15 : COPY worker /app/worker
+ ---> ce9a9f74a3a4
+Step 6/17 : COPY worker /app/worker
  ---> Using cache
- ---> 6e85f93c10ef
-Step 7/15 : RUN mvn clean package -DskipTests -pl worker -am
- ---> Using cache
- ---> 842f3359c0c2
-Step 8/15 : FROM registry.access.redhat.com/ubi8/openjdk-17:1.20
- ---> e1a785356839
-Step 9/15 : ENV LANGUAGE='en_US:en'
- ---> Using cache
- ---> 0315c9c12bcf
-Step 10/15 : COPY --from=builder /app/worker/target/quarkus-app/lib/ /deployments/lib/
- ---> Using cache
- ---> 8f2b1f76aa03
-Step 11/15 : COPY --from=builder /app/worker/target/quarkus-app/*.jar /deployments/
- ---> Using cache
- ---> 75706b5750e2
-Step 12/15 : COPY --from=builder /app/worker/target/quarkus-app/app/ /deployments/app/
- ---> Using cache
- ---> 34d35dadc4cf
-Step 13/15 : COPY --from=builder /app/worker/target/quarkus-app/quarkus/ /deployments/quarkus/
- ---> Using cache
- ---> 35b2d3f20d86
-Step 14/15 : USER 1001
- ---> Using cache
- ---> 87337b336b4a
-Step 15/15 : ENTRYPOINT ["java", "-jar", "/deployments/quarkus-run.jar"]
- ---> Using cache
- ---> 18b5be7b6e17
-Successfully built 18b5be7b6e17
-Successfully tagged clipsearch_worker:latest
-Sending build context to Docker daemon  287.6MB
-Step 1/14 : FROM node:20 AS builder
- ---> 0bbc9ccc88e2
-Step 2/14 : WORKDIR /app
- ---> Using cache
- ---> 6f14e2334d6d
-Step 3/14 : COPY package*.json ./
- ---> Using cache
- ---> 5171bf01a9c2
-Step 4/14 : RUN npm ci
- ---> Using cache
- ---> 5042308a9f76
-Step 5/14 : COPY . .
- ---> Using cache
- ---> 58fe97a6c64b
-Step 6/14 : RUN npm run build
- ---> Using cache
- ---> d02329c5f876
-Step 7/14 : FROM nginxinc/nginx-unprivileged:stable-alpine
- ---> 4a0915357175
-Step 8/14 : USER root
- ---> Using cache
- ---> fef2c6bcc440
-Step 9/14 : COPY --from=builder /app/dist/frontend/browser /usr/share/nginx/html
- ---> Using cache
- ---> 0893b01f1ebd
-Step 10/14 : COPY nginx.conf /etc/nginx/conf.d/default.conf
- ---> Using cache
- ---> c742c2b144bb
-Step 11/14 : RUN echo '{"apiUrl": "/api"}' > /usr/share/nginx/html/config.json &&     chown 101:101 /usr/share/nginx/html/config.json
- ---> Using cache
- ---> 9c9fab39e14b
-Step 12/14 : USER 101
- ---> Using cache
- ---> ae3086622a2a
-Step 13/14 : EXPOSE 8080
- ---> Using cache
- ---> a6d25a85d1cd
-Step 14/14 : CMD ["nginx", "-g", "daemon off;"]
- ---> Using cache
- ---> 13feb0c6c487
-Successfully built 13feb0c6c487
-Successfully tagged clipsearch_frontend:latest
+ ---> 2997765b11cf
+Step 7/17 : RUN mvn clean package -DskipTests -pl worker -am
+ ---> Running in 781cbe11dad6
+[INFO] Scanning for projects...
+Downloading from central: https://repo.maven.apache.org/maven2/io/quarkus/platform/quarkus-maven-plugin/3.6.4/quarkus-maven-plugin-3.6.4.pom
+Progress (1): 981 BProgress (1): 2.8 kBProgress (1): 7.1 kBProgress (1): 10 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/quarkus/platform/quarkus-maven-plugin/3.6.4/quarkus-maven-plugin-3.6.4.pom (10 kB at 24 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/quarkus/platform/quarkus-bom/3.6.4/quarkus-bom-3.6.4.pom
+Progress (1): 776 BProgress (1): 2.0 kBProgress (1): 6.2 kBProgress (1): 18 kB Progress (1): 23 kBProgress (1): 31 kBProgress (1): 38 kBProgress (1): 46 kBProgress (1): 58 kBProgress (1): 69 kBProgress (1): 79 kBProgress (1): 91 kBProgress (1): 106 kBProgress (1): 116 kBProgress (1): 132 kBProgress (1): 147 kBProgress (1): 154 kBProgress (1): 163 kBProgress (1): 177 kBProgress (1): 187 kBProgress (1): 203 kBProgress (1): 221 kBProgress (1): 234 kBProgress (1): 250 kBProgress (1): 264 kBProgress (1): 270 kBProgress (1): 281 kBProgress (1): 292 kBProgress (1): 300 kBProgress (1): 312 kBProgress (1): 327 kBProgress (1): 332 kBProgress (1): 338 kBProgress (1): 348 kBProgress (1): 352 kBProgress (1): 359 kBProgress (1): 368 kBProgress (1): 374 kBProgress (1): 385 kBProgress (1): 395 kBProgress (1): 400 kBProgress (1): 411 kBProgress (1): 417 kBProgress (1): 417 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/quarkus/platform/quarkus-bom/3.6.4/quarkus-bom-3.6.4.pom (417 kB at 3.7 MB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-bootstrap-core/3.6.4/quarkus-bootstrap-core-3.6.4.pom
+Progress (1): 2.2 kBProgress (1): 4.0 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-bootstrap-core/3.6.4/quarkus-bootstrap-core-3.6.4.pom (4.0 kB at 51 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-bootstrap-parent/3.6.4/quarkus-bootstrap-parent-3.6.4.pom
+Progress (1): 1.2 kBProgress (1): 2.6 kBProgress (1): 4.6 kBProgress (1): 7.9 kBProgress (1): 9.4 kBProgress (1): 13 kB Progress (1): 18 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-bootstrap-parent/3.6.4/quarkus-bootstrap-parent-3.6.4.pom (18 kB at 277 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-parent/3.6.4/quarkus-parent-3.6.4.pom
+Progress (1): 1.0 kBProgress (1): 2.9 kBProgress (1): 5.0 kBProgress (1): 7.5 kBProgress (1): 10 kB Progress (1): 16 kBProgress (1): 21 kBProgress (1): 25 kBProgress (1): 34 kBProgress (1): 40 kBProgress (1): 42 kBProgress (1): 45 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-parent/3.6.4/quarkus-parent-3.6.4.pom (45 kB at 640 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-bootstrap-bom/3.6.4/quarkus-bootstrap-bom-3.6.4.pom
+Progress (1): 2.2 kBProgress (1): 8.8 kBProgress (1): 20 kB Progress (1): 22 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-bootstrap-bom/3.6.4/quarkus-bootstrap-bom-3.6.4.pom (22 kB at 240 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-bom/2.1.2/smallrye-common-bom-2.1.2.pom
+Progress (1): 1.2 kBProgress (1): 4.3 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-bom/2.1.2/smallrye-common-bom-2.1.2.pom (4.3 kB at 58 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-bootstrap-bom-test/3.6.4/quarkus-bootstrap-bom-test-3.6.4.pom
+Progress (1): 1.9 kBProgress (1): 3.0 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-bootstrap-bom-test/3.6.4/quarkus-bootstrap-bom-test-3.6.4.pom (3.0 kB at 53 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-bootstrap-app-model/3.6.4/quarkus-bootstrap-app-model-3.6.4.pom
+Progress (1): 2.1 kBProgress (1): 3.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-bootstrap-app-model/3.6.4/quarkus-bootstrap-app-model-3.6.4.pom (3.6 kB at 50 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-fs-util/0.0.9/quarkus-fs-util-0.0.9.pom
+Progress (1): 1.2 kBProgress (1): 2.7 kBProgress (1): 5.6 kBProgress (1): 9.3 kBProgress (1): 13 kB Progress (1): 13 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-fs-util/0.0.9/quarkus-fs-util-0.0.9.pom (13 kB at 195 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/jboss/jboss-parent/39/jboss-parent-39.pom
+Progress (1): 701 BProgress (1): 1.5 kBProgress (1): 3.9 kBProgress (1): 6.2 kBProgress (1): 7.7 kBProgress (1): 10 kB Progress (1): 15 kBProgress (1): 22 kBProgress (1): 28 kBProgress (1): 32 kBProgress (1): 34 kBProgress (1): 38 kBProgress (1): 42 kBProgress (1): 57 kBProgress (1): 68 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/jboss/jboss-parent/39/jboss-parent-39.pom (68 kB at 904 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/jboss/logging/jboss-logging/3.5.3.Final/jboss-logging-3.5.3.Final.pom
+Progress (1): 755 BProgress (1): 2.4 kBProgress (1): 5.5 kBProgress (1): 9.3 kBProgress (1): 17 kB Progress (1): 19 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/jboss/logging/jboss-logging/3.5.3.Final/jboss-logging-3.5.3.Final.pom (19 kB at 286 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/jboss/logging/logging-parent/1.0.1.Final/logging-parent-1.0.1.Final.pom
+Progress (1): 1.2 kBProgress (1): 3.8 kBProgress (1): 6.0 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/jboss/logging/logging-parent/1.0.1.Final/logging-parent-1.0.1.Final.pom (6.0 kB at 101 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.9.3/junit-bom-5.9.3.pom
+Progress (1): 907 BProgress (1): 4.1 kBProgress (1): 5.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.9.3/junit-bom-5.9.3.pom (5.6 kB at 73 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/jboss/logging/commons-logging-jboss-logging/1.0.0.Final/commons-logging-jboss-logging-1.0.0.Final.pom
+Progress (1): 786 BProgress (1): 2.8 kBProgress (1): 3.5 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/jboss/logging/commons-logging-jboss-logging/1.0.0.Final/commons-logging-jboss-logging-1.0.0.Final.pom (3.5 kB at 48 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/jboss/jboss-parent/18/jboss-parent-18.pom
+Progress (1): 1.0 kBProgress (1): 3.3 kBProgress (1): 5.8 kBProgress (1): 7.7 kBProgress (1): 13 kB Progress (1): 22 kBProgress (1): 26 kBProgress (1): 27 kBProgress (1): 30 kBProgress (1): 31 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/jboss/jboss-parent/18/jboss-parent-18.pom (31 kB at 507 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-io/2.1.2/smallrye-common-io-2.1.2.pom
+Progress (1): 1.6 kBProgress (1): 2.1 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-io/2.1.2/smallrye-common-io-2.1.2.pom (2.1 kB at 30 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-parent/2.1.2/smallrye-common-parent-2.1.2.pom
+Progress (1): 1.2 kBProgress (1): 3.3 kBProgress (1): 7.3 kBProgress (1): 8.5 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-parent/2.1.2/smallrye-common-parent-2.1.2.pom (8.5 kB at 142 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/smallrye-parent/40/smallrye-parent-40.pom
+Progress (1): 1.4 kBProgress (1): 6.0 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/smallrye-parent/40/smallrye-parent-40.pom (6.0 kB at 102 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/smallrye-build-parent/40/smallrye-build-parent-40.pom
+Progress (1): 1.1 kBProgress (1): 3.1 kBProgress (1): 5.9 kBProgress (1): 9.9 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 21 kBProgress (1): 26 kBProgress (1): 29 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/smallrye-build-parent/40/smallrye-build-parent-40.pom (29 kB at 501 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/jboss/shrinkwrap/shrinkwrap-bom/1.2.6/shrinkwrap-bom-1.2.6.pom
+Progress (1): 986 BProgress (1): 4.0 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/jboss/shrinkwrap/shrinkwrap-bom/1.2.6/shrinkwrap-bom-1.2.6.pom (4.0 kB at 59 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-bootstrap-maven-resolver/3.6.4/quarkus-bootstrap-maven-resolver-3.6.4.pom
+Progress (1): 1.8 kBProgress (1): 6.6 kBProgress (1): 6.9 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/quarkus/quarkus-bootstrap-maven-resolver/3.6.4/quarkus-bootstrap-maven-resolver-3.6.4.pom (6.9 kB at 103 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/beanbag/smallrye-beanbag-maven/1.3.2/smallrye-beanbag-maven-1.3.2.pom
+Progress (1): 2.2 kBProgress (1): 6.3 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/beanbag/smallrye-beanbag-maven/1.3.2/smallrye-beanbag-maven-1.3.2.pom (6.3 kB at 85 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/beanbag/smallrye-beanbag-parent/1.3.2/smallrye-beanbag-parent-1.3.2.pom
+Progress (1): 1.1 kBProgress (1): 3.2 kBProgress (1): 9.8 kBProgress (1): 15 kB Progress (1): 16 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/beanbag/smallrye-beanbag-parent/1.3.2/smallrye-beanbag-parent-1.3.2.pom (16 kB at 246 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/smallrye-parent/39/smallrye-parent-39.pom
+Progress (1): 1.4 kBProgress (1): 6.0 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/smallrye-parent/39/smallrye-parent-39.pom (6.0 kB at 84 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/smallrye-build-parent/39/smallrye-build-parent-39.pom
+Progress (1): 1.1 kBProgress (1): 3.1 kBProgress (1): 5.7 kBProgress (1): 9.7 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 21 kBProgress (1): 26 kBProgress (1): 28 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/smallrye-build-parent/39/smallrye-build-parent-39.pom (28 kB at 457 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-bom/2.1.0/smallrye-common-bom-2.1.0.pom
+Progress (1): 1.3 kBProgress (1): 4.3 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-bom/2.1.0/smallrye-common-bom-2.1.0.pom (4.3 kB at 63 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.9.2/junit-bom-5.9.2.pom
+Progress (1): 907 BProgress (1): 4.1 kBProgress (1): 5.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.9.2/junit-bom-5.9.2.pom (5.6 kB at 73 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/beanbag/smallrye-beanbag-sisu/1.3.2/smallrye-beanbag-sisu-1.3.2.pom
+Progress (1): 1.4 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/beanbag/smallrye-beanbag-sisu/1.3.2/smallrye-beanbag-sisu-1.3.2.pom (1.4 kB at 20 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/beanbag/smallrye-beanbag/1.3.2/smallrye-beanbag-1.3.2.pom
+Progress (1): 964 B                   Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/beanbag/smallrye-beanbag/1.3.2/smallrye-beanbag-1.3.2.pom (964 B at 16 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-constraint/2.1.2/smallrye-common-constraint-2.1.2.pom
+Progress (1): 1.8 kBProgress (1): 2.1 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-constraint/2.1.2/smallrye-common-constraint-2.1.2.pom (2.1 kB at 31 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/javax/inject/javax.inject/1/javax.inject-1.pom
+Progress (1): 612 B                   Downloaded from central: https://repo.maven.apache.org/maven2/javax/inject/javax.inject/1/javax.inject-1.pom (612 B at 8.7 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/commons-codec/commons-codec/1.16.0/commons-codec-1.16.0.pom
+Progress (1): 756 BProgress (1): 2.0 kBProgress (1): 3.9 kBProgress (1): 6.3 kBProgress (1): 8.6 kBProgress (1): 11 kB Progress (1): 13 kBProgress (1): 14 kBProgress (1): 16 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/commons-codec/commons-codec/1.16.0/commons-codec-1.16.0.pom (16 kB at 250 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/58/commons-parent-58.pom
+Progress (1): 707 BProgress (1): 1.9 kBProgress (1): 3.1 kBProgress (1): 4.6 kBProgress (1): 6.5 kBProgress (1): 8.4 kBProgress (1): 10 kB Progress (1): 12 kBProgress (1): 15 kBProgress (1): 18 kBProgress (1): 20 kBProgress (1): 23 kBProgress (1): 26 kBProgress (1): 29 kBProgress (1): 33 kBProgress (1): 33 kBProgress (1): 36 kBProgress (1): 41 kBProgress (1): 44 kBProgress (1): 47 kBProgress (1): 49 kBProgress (1): 52 kBProgress (1): 55 kBProgress (1): 58 kBProgress (1): 61 kBProgress (1): 64 kBProgress (1): 67 kBProgress (1): 73 kBProgress (1): 76 kBProgress (1): 80 kBProgress (1): 83 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/58/commons-parent-58.pom (83 kB at 984 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/apache/29/apache-29.pom
+Progress (1): 741 BProgress (1): 2.1 kBProgress (1): 3.9 kBProgress (1): 6.9 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 19 kBProgress (1): 21 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/apache/29/apache-29.pom (21 kB at 262 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-lang3/3.13.0/commons-lang3-3.13.0.pom
+Progress (1): 741 BProgress (1): 2.0 kBProgress (1): 4.7 kBProgress (1): 8.4 kBProgress (1): 12 kB Progress (1): 15 kBProgress (1): 17 kBProgress (1): 18 kBProgress (1): 21 kBProgress (1): 24 kBProgress (1): 28 kBProgress (1): 30 kBProgress (1): 31 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-lang3/3.13.0/commons-lang3-3.13.0.pom (31 kB at 373 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.pom
+Progress (1): 859 BProgress (1): 2.8 kBProgress (1): 5.0 kBProgress (1): 6.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.pom (6.6 kB at 70 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpcomponents-client/4.5.14/httpcomponents-client-4.5.14.pom
+Progress (1): 841 BProgress (1): 2.3 kBProgress (1): 4.6 kBProgress (1): 8.6 kBProgress (1): 11 kB Progress (1): 14 kBProgress (1): 15 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpcomponents-client/4.5.14/httpcomponents-client-4.5.14.pom (15 kB at 180 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpcomponents-parent/11/httpcomponents-parent-11.pom
+Progress (1): 803 BProgress (1): 2.2 kBProgress (1): 3.7 kBProgress (1): 5.3 kBProgress (1): 6.5 kBProgress (1): 8.9 kBProgress (1): 12 kB Progress (1): 15 kBProgress (1): 18 kBProgress (1): 23 kBProgress (1): 26 kBProgress (1): 28 kBProgress (1): 32 kBProgress (1): 34 kBProgress (1): 35 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpcomponents-parent/11/httpcomponents-parent-11.pom (35 kB at 434 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/apache/21/apache-21.pom
+Progress (1): 753 BProgress (1): 2.1 kBProgress (1): 3.9 kBProgress (1): 8.3 kBProgress (1): 13 kB Progress (1): 16 kBProgress (1): 17 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/apache/21/apache-21.pom (17 kB at 244 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.pom
+Progress (1): 869 BProgress (1): 2.5 kBProgress (1): 4.7 kBProgress (1): 5.0 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.pom (5.0 kB at 64 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpcomponents-core/4.4.16/httpcomponents-core-4.4.16.pom
+Progress (1): 850 BProgress (1): 2.3 kBProgress (1): 4.3 kBProgress (1): 7.2 kBProgress (1): 9.8 kBProgress (1): 12 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/httpcomponents/httpcomponents-core/4.4.16/httpcomponents-core-4.4.16.pom (12 kB at 184 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-artifact/3.9.6/maven-artifact-3.9.6.pom
+Progress (1): 821 BProgress (1): 2.3 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-artifact/3.9.6/maven-artifact-3.9.6.pom (2.3 kB at 32 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven/3.9.6/maven-3.9.6.pom
+Progress (1): 722 BProgress (1): 1.9 kBProgress (1): 4.0 kBProgress (1): 5.6 kBProgress (1): 9.6 kBProgress (1): 14 kB Progress (1): 21 kBProgress (1): 23 kBProgress (1): 26 kBProgress (1): 29 kBProgress (1): 29 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven/3.9.6/maven-3.9.6.pom (29 kB at 467 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/41/maven-parent-41.pom
+Progress (1): 724 BProgress (1): 1.9 kBProgress (1): 5.5 kBProgress (1): 9.9 kBProgress (1): 14 kB Progress (1): 19 kBProgress (1): 23 kBProgress (1): 27 kBProgress (1): 28 kBProgress (1): 31 kBProgress (1): 34 kBProgress (1): 37 kBProgress (1): 40 kBProgress (1): 43 kBProgress (1): 48 kBProgress (1): 48 kBProgress (1): 50 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/41/maven-parent-41.pom (50 kB at 648 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/apache/31/apache-31.pom
+Progress (1): 739 BProgress (1): 2.1 kBProgress (1): 3.9 kBProgress (1): 6.2 kBProgress (1): 11 kB Progress (1): 16 kBProgress (1): 20 kBProgress (1): 22 kBProgress (1): 24 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/apache/31/apache-31.pom (24 kB at 351 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-utils/3.5.1/plexus-utils-3.5.1.pom
+Progress (1): 726 BProgress (1): 2.4 kBProgress (1): 4.4 kBProgress (1): 8.6 kBProgress (1): 8.8 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-utils/3.5.1/plexus-utils-3.5.1.pom (8.8 kB at 115 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus/10/plexus-10.pom
+Progress (1): 696 BProgress (1): 2.7 kBProgress (1): 6.4 kBProgress (1): 9.2 kBProgress (1): 11 kB Progress (1): 16 kBProgress (1): 20 kBProgress (1): 24 kBProgress (1): 25 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus/10/plexus-10.pom (25 kB at 348 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-builder-support/3.9.6/maven-builder-support-3.9.6.pom
+Progress (1): 847 BProgress (1): 1.4 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-builder-support/3.9.6/maven-builder-support-3.9.6.pom (1.4 kB at 21 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-model/3.9.6/maven-model-3.9.6.pom
+Progress (1): 817 BProgress (1): 2.6 kBProgress (1): 2.7 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-model/3.9.6/maven-model-3.9.6.pom (2.7 kB at 41 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-model-builder/3.9.6/maven-model-builder-3.9.6.pom
+Progress (1): 814 BProgress (1): 3.5 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-model-builder/3.9.6/maven-model-builder-3.9.6.pom (3.5 kB at 63 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-interpolation/1.26/plexus-interpolation-1.26.pom
+Progress (1): 1.4 kBProgress (1): 2.7 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-interpolation/1.26/plexus-interpolation-1.26.pom (2.7 kB at 41 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus/5.1/plexus-5.1.pom
+Progress (1): 700 BProgress (1): 2.7 kBProgress (1): 6.5 kBProgress (1): 9.1 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 21 kBProgress (1): 23 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus/5.1/plexus-5.1.pom (23 kB at 381 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/eclipse/sisu/org.eclipse.sisu.inject/0.9.0.M2/org.eclipse.sisu.inject-0.9.0.M2.pom
+Progress (1): 804 BProgress (1): 4.1 kBProgress (1): 10 kB Progress (1): 16 kBProgress (1): 17 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/eclipse/sisu/org.eclipse.sisu.inject/0.9.0.M2/org.eclipse.sisu.inject-0.9.0.M2.pom (17 kB at 263 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/eclipse/sisu/sisu-inject/0.9.0.M2/sisu-inject-0.9.0.M2.pom
+Progress (1): 819 BProgress (1): 2.8 kBProgress (1): 4.9 kBProgress (1): 8.5 kBProgress (1): 12 kB Progress (1): 15 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/eclipse/sisu/sisu-inject/0.9.0.M2/sisu-inject-0.9.0.M2.pom (15 kB at 251 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-repository-metadata/3.9.6/maven-repository-metadata-3.9.6.pom
+Progress (1): 830 BProgress (1): 2.1 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-repository-metadata/3.9.6/maven-repository-metadata-3.9.6.pom (2.1 kB at 35 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-resolver-provider/3.9.6/maven-resolver-provider-3.9.6.pom
+Progress (1): 812 BProgress (1): 3.9 kBProgress (1): 4.5 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-resolver-provider/3.9.6/maven-resolver-provider-3.9.6.pom (4.5 kB at 75 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-settings/3.9.6/maven-settings-3.9.6.pom
+Progress (1): 832 BProgress (1): 1.8 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-settings/3.9.6/maven-settings-3.9.6.pom (1.8 kB at 33 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-settings-builder/3.9.6/maven-settings-builder-3.9.6.pom
+Progress (1): 821 BProgress (1): 2.5 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-settings-builder/3.9.6/maven-settings-builder-3.9.6.pom (2.5 kB at 44 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-sec-dispatcher/2.0/plexus-sec-dispatcher-2.0.pom
+Progress (1): 1.3 kBProgress (1): 3.2 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-sec-dispatcher/2.0/plexus-sec-dispatcher-2.0.pom (3.2 kB at 48 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus/8/plexus-8.pom
+Progress (1): 696 BProgress (1): 2.7 kBProgress (1): 6.4 kBProgress (1): 9.2 kBProgress (1): 11 kB Progress (1): 15 kBProgress (1): 20 kBProgress (1): 24 kBProgress (1): 25 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus/8/plexus-8.pom (25 kB at 439 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-cipher/2.0/plexus-cipher-2.0.pom
+Progress (1): 1.3 kBProgress (1): 4.3 kBProgress (1): 4.4 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-cipher/2.0/plexus-cipher-2.0.pom (4.4 kB at 67 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-xml/4.0.0/plexus-xml-4.0.0.pom
+Progress (1): 798 BProgress (1): 2.5 kBProgress (1): 5.5 kBProgress (1): 6.5 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-xml/4.0.0/plexus-xml-4.0.0.pom (6.5 kB at 105 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus/13/plexus-13.pom
+Progress (1): 693 BProgress (1): 2.5 kBProgress (1): 6.4 kBProgress (1): 8.9 kBProgress (1): 11 kB Progress (1): 14 kBProgress (1): 18 kBProgress (1): 21 kBProgress (1): 26 kBProgress (1): 27 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus/13/plexus-13.pom (27 kB at 365 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-xml-impl/4.0.0-alpha-5/maven-xml-impl-4.0.0-alpha-5.pom
+Progress (1): 821 BProgress (1): 1.9 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-xml-impl/4.0.0-alpha-5/maven-xml-impl-4.0.0-alpha-5.pom (1.9 kB at 29 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven/4.0.0-alpha-5/maven-4.0.0-alpha-5.pom
+Progress (1): 733 BProgress (1): 1.9 kBProgress (1): 4.2 kBProgress (1): 5.9 kBProgress (1): 8.5 kBProgress (1): 14 kB Progress (1): 19 kBProgress (1): 21 kBProgress (1): 24 kBProgress (1): 26 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven/4.0.0-alpha-5/maven-4.0.0-alpha-5.pom (26 kB at 408 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/39/maven-parent-39.pom
+Progress (1): 724 BProgress (1): 1.9 kBProgress (1): 5.5 kBProgress (1): 9.8 kBProgress (1): 14 kB Progress (1): 19 kBProgress (1): 23 kBProgress (1): 26 kBProgress (1): 28 kBProgress (1): 31 kBProgress (1): 34 kBProgress (1): 37 kBProgress (1): 40 kBProgress (1): 43 kBProgress (1): 48 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/39/maven-parent-39.pom (48 kB at 786 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-bom/4.0.0-alpha-5/maven-bom-4.0.0-alpha-5.pom
+Progress (1): 799 BProgress (1): 2.3 kBProgress (1): 6.3 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-bom/4.0.0-alpha-5/maven-bom-4.0.0-alpha-5.pom (6.3 kB at 96 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.9.1/junit-bom-5.9.1.pom
+Progress (1): 907 BProgress (1): 4.1 kBProgress (1): 5.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.9.1/junit-bom-5.9.1.pom (5.6 kB at 87 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-api-xml/4.0.0-alpha-5/maven-api-xml-4.0.0-alpha-5.pom
+Progress (1): 853 BProgress (1): 1.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-api-xml/4.0.0-alpha-5/maven-api-xml-4.0.0-alpha-5.pom (1.6 kB at 25 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-api/4.0.0-alpha-5/maven-api-4.0.0-alpha-5.pom
+Progress (1): 829 BProgress (1): 2.5 kBProgress (1): 3.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-api/4.0.0-alpha-5/maven-api-4.0.0-alpha-5.pom (3.6 kB at 58 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-api-meta/4.0.0-alpha-5/maven-api-meta-4.0.0-alpha-5.pom
+Progress (1): 852 BProgress (1): 1.4 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-api-meta/4.0.0-alpha-5/maven-api-meta-4.0.0-alpha-5.pom (1.4 kB at 23 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/eclipse/sisu/org.eclipse.sisu.plexus/0.9.0.M2/org.eclipse.sisu.plexus-0.9.0.M2.pom
+Progress (1): 827 BProgress (1): 3.5 kBProgress (1): 8.7 kBProgress (1): 15 kB Progress (1): 15 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/eclipse/sisu/org.eclipse.sisu.plexus/0.9.0.M2/org.eclipse.sisu.plexus-0.9.0.M2.pom (15 kB at 227 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/eclipse/sisu/sisu-plexus/0.9.0.M2/sisu-plexus-0.9.0.M2.pom
+Progress (1): 811 BProgress (1): 2.8 kBProgress (1): 4.9 kBProgress (1): 8.5 kBProgress (1): 12 kB Progress (1): 15 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/eclipse/sisu/sisu-plexus/0.9.0.M2/sisu-plexus-0.9.0.M2.pom (15 kB at 223 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/jboss/logmanager/jboss-logmanager/3.0.2.Final/jboss-logmanager-3.0.2.Final.pom
+Progress (1): 759 BProgress (1): 2.3 kBProgress (1): 5.9 kBProgress (1): 8.8 kBProgress (1): 11 kB Progress (1): 13 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/jboss/logmanager/jboss-logmanager/3.0.2.Final/jboss-logmanager-3.0.2.Final.pom (13 kB at 151 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.10.0/junit-bom-5.10.0.pom
+Progress (1): 913 BProgress (1): 4.1 kBProgress (1): 5.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.10.0/junit-bom-5.10.0.pom (5.6 kB at 90 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-cpu/2.1.2/smallrye-common-cpu-2.1.2.pom
+Progress (1): 1.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-cpu/2.1.2/smallrye-common-cpu-2.1.2.pom (1.6 kB at 22 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-expression/2.1.2/smallrye-common-expression-2.1.2.pom
+Progress (1): 1.9 kBProgress (1): 2.4 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-expression/2.1.2/smallrye-common-expression-2.1.2.pom (2.4 kB at 33 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-function/2.1.2/smallrye-common-function-2.1.2.pom
+Progress (1): 1.7 kBProgress (1): 2.0 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-function/2.1.2/smallrye-common-function-2.1.2.pom (2.0 kB at 30 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-net/2.1.2/smallrye-common-net-2.1.2.pom
+Progress (1): 2.0 kBProgress (1): 2.7 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-net/2.1.2/smallrye-common-net-2.1.2.pom (2.7 kB at 37 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-os/2.1.2/smallrye-common-os-2.1.2.pom
+Progress (1): 1.5 kBProgress (1): 1.9 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-os/2.1.2/smallrye-common-os-2.1.2.pom (1.9 kB at 30 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-ref/2.1.2/smallrye-common-ref-2.1.2.pom
+Progress (1): 1.6 kBProgress (1): 2.0 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/io/smallrye/common/smallrye-common-ref/2.1.2/smallrye-common-ref-2.1.2.pom (2.0 kB at 31 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/jakarta/json/jakarta.json-api/2.1.3/jakarta.json-api-2.1.3.pom
+Progress (1): 834 BProgress (1): 2.6 kBProgress (1): 5.9 kBProgress (1): 10 kB Progress (1): 14 kBProgress (1): 17 kBProgress (1): 19 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/jakarta/json/jakarta.json-api/2.1.3/jakarta.json-api-2.1.3.pom (19 kB at 252 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/eclipse/ee4j/project/1.0.8/project-1.0.8.pom
+Progress (1): 873 BProgress (1): 2.5 kBProgress (1): 5.0 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 15 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/eclipse/ee4j/project/1.0.8/project-1.0.8.pom (15 kB at 208 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/eclipse/parsson/parsson/1.1.5/parsson-1.1.5.pom
+Progress (1): 857 BProgress (1): 2.7 kBProgress (1): 4.4 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/eclipse/parsson/parsson/1.1.5/parsson-1.1.5.pom (4.4 kB at 70 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/eclipse/parsson/project/1.1.5/project-1.1.5.pom
+Progress (1): 823 BProgress (1): 2.6 kBProgress (1): 4.9 kBProgress (1): 8.5 kBProgress (1): 12 kB Progress (1): 19 kBProgress (1): 22 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/eclipse/parsson/project/1.1.5/project-1.1.5.pom (22 kB at 306 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/jboss/slf4j/slf4j-jboss-logmanager/2.0.0.Final/slf4j-jboss-logmanager-2.0.0.Final.pom
+Progress (1): 780 BProgress (1): 2.4 kBProgress (1): 6.0 kBProgress (1): 8.1 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/jboss/slf4j/slf4j-jboss-logmanager/2.0.0.Final/slf4j-jboss-logmanager-2.0.0.Final.pom (8.1 kB at 130 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/jboss/logging/logging-parent/1.0.0.Final/logging-parent-1.0.0.Final.pom
+Progress (1): 1.2 kBProgress (1): 3.8 kBProgress (1): 6.4 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/jboss/logging/logging-parent/1.0.0.Final/logging-parent-1.0.0.Final.pom (6.4 kB at 111 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/2.0.6/slf4j-api-2.0.6.pom
+Progress (1): 1.3 kBProgress (1): 1.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/2.0.6/slf4j-api-2.0.6.pom (1.6 kB at 27 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/slf4j/slf4j-parent/2.0.6/slf4j-parent-2.0.6.pom
+Progress (1): 1.0 kBProgress (1): 2.9 kBProgress (1): 5.7 kBProgress (1): 8.7 kBProgress (1): 12 kB Progress (1): 15 kBProgress (1): 17 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/slf4j/slf4j-parent/2.0.6/slf4j-parent-2.0.6.pom (17 kB at 240 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-embedder/3.9.6/maven-embedder-3.9.6.pom
+Progress (1): 803 BProgress (1): 3.5 kBProgress (1): 6.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-embedder/3.9.6/maven-embedder-3.9.6.pom (6.6 kB at 90 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-core/3.9.6/maven-core-3.9.6.pom
+Progress (1): 799 BProgress (1): 4.5 kBProgress (1): 7.2 kBProgress (1): 7.5 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-core/3.9.6/maven-core-3.9.6.pom (7.5 kB at 105 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-plugin-api/3.9.6/maven-plugin-api-3.9.6.pom
+Progress (1): 814 BProgress (1): 2.9 kBProgress (1): 2.9 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-plugin-api/3.9.6/maven-plugin-api-3.9.6.pom (2.9 kB at 47 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-classworlds/2.6.0/plexus-classworlds-2.6.0.pom
+Progress (1): 932 BProgress (1): 2.6 kBProgress (1): 5.5 kBProgress (1): 7.9 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-classworlds/2.6.0/plexus-classworlds-2.6.0.pom (7.9 kB at 139 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-utils/3.3.4/maven-shared-utils-3.3.4.pom
+Progress (1): 790 BProgress (1): 2.3 kBProgress (1): 4.3 kBProgress (1): 5.8 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-utils/3.3.4/maven-shared-utils-3.3.4.pom (5.8 kB at 87 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-components/34/maven-shared-components-34.pom
+Progress (1): 781 BProgress (1): 2.3 kBProgress (1): 4.6 kBProgress (1): 5.1 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/shared/maven-shared-components/34/maven-shared-components-34.pom (5.1 kB at 66 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/34/maven-parent-34.pom
+Progress (1): 727 BProgress (1): 1.9 kBProgress (1): 5.4 kBProgress (1): 9.8 kBProgress (1): 14 kB Progress (1): 19 kBProgress (1): 23 kBProgress (1): 26 kBProgress (1): 27 kBProgress (1): 30 kBProgress (1): 34 kBProgress (1): 37 kBProgress (1): 41 kBProgress (1): 43 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/maven-parent/34/maven-parent-34.pom (43 kB at 603 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/apache/23/apache-23.pom
+Gracefully stopping... (press Ctrl+C again to force)

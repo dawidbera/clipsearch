@@ -49,11 +49,16 @@ services:
       - S3_ENDPOINT=http://localstack:4566
       - SQS_ENDPOINT=http://localstack:4566
       - ES_URL=elasticsearch:9200
+      - RHOAI_BASE_URL=${RHOAI_BASE_URL}
+      - RHOAI_API_KEY=${RHOAI_API_KEY}
+      - RHOAI_MODEL_NAME=${RHOAI_MODEL_NAME}
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_REGION=us-east-1
       - S3_BUCKET=clipsearch
       - SQS_QUEUE_NAME=clipsearch-index-queue
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - localstack
       - elasticsearch

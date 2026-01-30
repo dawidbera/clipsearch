@@ -25,6 +25,12 @@ spec:
                 name: clipsearch-config
             - secretRef:
                 name: clipsearch-aws-secret
+          env:
+            - name: RHOAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: clipsearch-rhoai-secret
+                  key: RHOAI_API_KEY
           resources:
             requests:
               memory: "256Mi"

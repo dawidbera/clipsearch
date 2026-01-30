@@ -14,6 +14,24 @@
 
   <!-- SEARCH TAB -->
   <div *ngIf="activeTab === 'search'">
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <select class="form-select" [(ngModel)]="filterContentType" (change)="search()">
+          <option value="">All Types</option>
+          <option value="application/pdf">PDF Documents</option>
+          <option value="text/plain">Text Files</option>
+          <option value="image/png">PNG Images</option>
+          <option value="image/jpeg">JPEG Images</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control" placeholder="Filter by tag..." [(ngModel)]="filterTag" (keyup.enter)="search()">
+      </div>
+      <div class="col-md-4 text-end">
+        <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">Clear Filters</button>
+      </div>
+    </div>
+
     <div class="row mb-4">
       <div class="col">
         <div class="input-group">
@@ -26,18 +44,43 @@
       </div>
     </div>
 
-    <div *ngIf="searchResults.items.length > 0" class="list-group">
-      <div *ngFor="let item of searchResults.items" class="list-group-item list-group-item-action">
-        <div class="d-flex w-100 justify-content-between">
-          <h5 class="mb-1">{{ item.filename }}</h5>
-          <small class="text-muted">{{ item.uploadedAt | date:'short' }}</small>
+    <div *ngIf="searchResults.items.length > 0" class="mt-4">
+      <div class="list-group mb-3">
+        <div *ngFor="let item of searchResults.items" class="list-group-item list-group-item-action">
+          <div class="d-flex w-100 justify-content-between align-items-center">
+            <h5 class="mb-1">{{ item.filename }}</h5>
+            <div>
+              <button class="btn btn-sm btn-outline-success me-2" (click)="downloadFile(item.id)">
+                <span class="material-icons" style="font-size: 16px; vertical-align: middle;">download</span>
+                Download
+              </button>
+              <small class="text-muted">{{ item.uploadedAt | date:'short' }}</small>
+            </div>
+          </div>
+          <p class="mb-1 text-truncate" *ngIf="item.content">{{ item.content }}</p>
+          <div *ngIf="item.summary" class="alert alert-light border-start border-primary border-4 py-2 mt-2" style="font-size: 0.9rem;">
+            <strong><span class="material-icons align-middle me-1" style="font-size: 18px; color: #0d6efd;">auto_awesome</span> AI Summary:</strong>
+            <p class="mb-0 mt-1" style="white-space: pre-wrap;">{{ item.summary }}</p>
+          </div>
+          <small class="text-muted">
+            Type: {{ item.contentType }} | Size: {{ formatSize(item.sizeBytes) }} | 
+            Tags: <span *ngFor="let tag of item.tags" class="badge bg-secondary me-1">{{ tag }}</span>
+          </small>
         </div>
-        <p class="mb-1 text-truncate" *ngIf="item.content">{{ item.content }}</p>
-        <small class="text-muted">
-          Type: {{ item.contentType }} | Size: {{ formatSize(item.sizeBytes) }} | 
-          Tags: <span *ngFor="let tag of item.tags" class="badge bg-secondary me-1">{{ tag }}</span>
-        </small>
       </div>
+
+      <!-- PAGINATION -->
+      <nav *ngIf="searchResults.total > pageSize" class="d-flex justify-content-between align-items-center">
+        <button class="btn btn-outline-primary" (click)="prevPage()" [disabled]="currentPage === 0">
+          Previous
+        </button>
+        <span class="text-muted">
+          Page {{ currentPage + 1 }} of {{ getTotalPages() }} (Total: {{ searchResults.total }})
+        </span>
+        <button class="btn btn-outline-primary" (click)="nextPage()" [disabled]="(currentPage + 1) * pageSize >= searchResults.total">
+          Next
+        </button>
+      </nav>
     </div>
 
     <div *ngIf="searchResults.items.length === 0 && !searching" class="text-center mt-5 text-muted">
@@ -85,6 +128,7 @@
           <th>Size</th>
           <th>Uploaded At</th>
           <th>Tags</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -95,6 +139,11 @@
           <td>{{ item.uploadedAt | date:'short' }}</td>
           <td>
             <span *ngFor="let tag of item.tags" class="badge bg-secondary me-1">{{ tag }}</span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-outline-success" (click)="downloadFile(item.id)">
+              Download
+            </button>
           </td>
         </tr>
       </tbody>

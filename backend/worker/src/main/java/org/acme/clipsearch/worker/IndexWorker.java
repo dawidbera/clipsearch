@@ -2,6 +2,9 @@ package org.acme.clipsearch.worker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import dev.langchain4j.service.SystemMessage;
+import dev.langchain4j.service.UserMessage;
+import io.quarkiverse.langchain4j.RegisterAiService;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.tika.TikaParser;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,7 +25,6 @@ import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
@@ -32,6 +34,13 @@ import java.util.List;
 @Slf4j
 @ApplicationScoped
 public class IndexWorker {
+
+    @RegisterAiService
+    public interface Summarizer {
+        @SystemMessage("You are a helpful assistant that summarizes documents. Provide a concise summary in 2-3 bullet points.")
+        @UserMessage("Please summarize the following text: {text}")
+        String summarize(String text);
+    }
 
     @Inject
     S3Client s3;
@@ -48,11 +57,17 @@ public class IndexWorker {
     @Inject
     TikaParser tika;
 
+    @Inject
+    Summarizer summarizer;
+
     @ConfigProperty(name = "clipsearch.sqs.queue")
     String queueName;
 
     @ConfigProperty(name = "clipsearch.es.index", defaultValue = "clipsearch-uploads")
     String esIndex;
+
+    @ConfigProperty(name = "clipsearch.ai.enabled", defaultValue = "true")
+    boolean aiEnabled;
 
     @Scheduled(every = "5s")
     void poll() {
@@ -113,16 +128,18 @@ public class IndexWorker {
                 event.getTags().forEach(tagsArray::add);
             }
 
-            // 4. Content extraction (if text/plain or application/pdf)
+            // 4. Content extraction (if text/plain, application/pdf or image/*)
             String extractedContent = null;
-            if ("text/plain".equals(event.getContentType())) {
+            String contentType = event.getContentType();
+            
+            if ("text/plain".equals(contentType)) {
                 extractedContent = new String(contentBytes, StandardCharsets.UTF_8);
-            } else if ("application/pdf".equals(event.getContentType())) {
+            } else if ("application/pdf".equals(contentType) || (contentType != null && contentType.startsWith("image/"))) {
                 try {
                     extractedContent = tika.getText(new ByteArrayInputStream(contentBytes));
-                    log.info("Extracted {} chars from PDF", extractedContent != null ? extractedContent.length() : 0);
+                    log.info("Extracted {} chars from {}", extractedContent != null ? extractedContent.length() : 0, contentType);
                 } catch (Exception e) {
-                    log.warn("Failed to extract text from PDF {}: {}", event.getKey(), e.getMessage());
+                    log.warn("Failed to extract text from {} {}: {}", contentType, event.getKey(), e.getMessage());
                 }
             }
 
@@ -132,12 +149,24 @@ public class IndexWorker {
                     extractedContent = extractedContent.substring(0, 256 * 1024);
                 }
                 doc.put("content", extractedContent);
+
+                // AI Summarization
+                if (aiEnabled && extractedContent.trim().length() > 50) {
+                    try {
+                        log.info("Generating AI summary for {}", event.getFilename());
+                        // Send max 5000 chars to AI for summary to avoid overwhelming it
+                        String textToSummarize = extractedContent.substring(0, Math.min(extractedContent.length(), 5000));
+                        String summary = summarizer.summarize(textToSummarize);
+                        doc.put("summary", summary);
+                        log.info("AI Summary generated successfully");
+                    } catch (Exception e) {
+                        log.warn("AI Summarization failed: {}", e.getMessage());
+                    }
+                }
             }
 
             // 5. Index to ES
-            // Using uploadId as _id to ensure every upload is a separate document in ES
             String docId = event.getUploadId();
-            
             Request esRequest = new Request("PUT", "/" + esIndex + "/_doc/" + docId);
             esRequest.setJsonEntity(mapper.writeValueAsString(doc));
             esClient.performRequest(esRequest);

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -19,12 +18,16 @@ import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -39,6 +42,9 @@ public class UploadResource {
 
     @Inject
     S3Client s3;
+
+    @Inject
+    S3Presigner s3Presigner;
 
     @Inject
     SqsClient sqs;
@@ -62,12 +68,8 @@ public class UploadResource {
     @Produces(MediaType.APPLICATION_JSON)
     public UploadResponse upload(@RestForm("file") FileUpload file,
                                  @RestForm("tags") String tagsRaw) throws Exception {
-        // ... (existing code)
-
         String uploadId = UUID.randomUUID().toString();
         String now = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
-        
-        // Date path: YYYY/MM/DD
         String datePath = DateTimeFormatter.ofPattern("yyyy/MM/dd")
                 .withZone(ZoneId.of("UTC"))
                 .format(Instant.now());
@@ -78,14 +80,12 @@ public class UploadResource {
                 ? Collections.emptyList() 
                 : Arrays.stream(tagsRaw.split(",")).map(String::trim).collect(Collectors.toList());
 
-        // 1. Upload to S3
         s3.putObject(PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
                 .contentType(file.contentType())
                 .build(), RequestBody.fromFile(file.uploadedFile()));
 
-        // 2. Prepare Event
         SqsEvent event = SqsEvent.builder()
                 .uploadId(uploadId)
                 .bucket(bucketName)
@@ -96,14 +96,12 @@ public class UploadResource {
                 .tags(tagList)
                 .build();
 
-        // 3. Send to SQS
         String queueUrl = sqs.getQueueUrl(GetQueueUrlRequest.builder().queueName(queueName).build()).queueUrl();
         sqs.sendMessage(SendMessageRequest.builder()
                 .queueUrl(queueUrl)
                 .messageBody(mapper.writeValueAsString(event))
                 .build());
 
-        // 4. Return Response
         return UploadResponse.builder()
                 .uploadId(uploadId)
                 .bucket(bucketName)
@@ -113,6 +111,37 @@ public class UploadResource {
                 .uploadedAt(now)
                 .tags(tagList)
                 .build();
+    }
+
+    @GET
+    @Path("/{id}/download")
+    @Produces(MediaType.APPLICATION_JSON)
+    public JsonNode getDownloadUrl(@PathParam("id") String id) throws IOException {
+        // 1. Find in ES to get bucket and key
+        Request esRequest = new Request("GET", "/" + INDEX + "/_doc/" + id);
+        Response response = restClient.performRequest(esRequest);
+        JsonNode doc = mapper.readTree(EntityUtils.toString(response.getEntity()));
+        JsonNode source = doc.path("_source");
+
+        String bucket = source.path("bucket").asText();
+        String key = source.path("key").asText();
+
+        // 2. Generate Presigned URL
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build();
+
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(15))
+                .getObjectRequest(getObjectRequest)
+                .build();
+
+        String url = s3Presigner.presignGetObject(presignRequest).url().toString();
+
+        ObjectNode result = mapper.createObjectNode();
+        result.put("url", url);
+        return result;
     }
 
     @GET

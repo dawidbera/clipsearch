@@ -13,6 +13,8 @@ spec:
       labels:
         app: elasticsearch
     spec:
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: elasticsearch
           image: elasticsearch:8.19.10
@@ -45,7 +47,20 @@ spec:
             periodSeconds: 10
       volumes:
         - name: es-data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: elasticsearch-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-pvc
+  namespace: clipsearch
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
 ---
 apiVersion: v1
 kind: Service
