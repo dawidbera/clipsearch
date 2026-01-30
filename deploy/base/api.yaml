@@ -13,9 +13,6 @@ spec:
       labels:
         app: clipsearch-api
     spec:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
       containers:
         - name: clipsearch-api
           image: ghcr.io/dawidbera/clipsearch-api:latest
@@ -30,10 +27,10 @@ spec:
           resources:
             requests:
               memory: "256Mi"
-              cpu: "100m"
+              cpu: "50m"
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: "384Mi"
+              cpu: "250m"
           readinessProbe:
             httpGet:
               path: /q/health/ready

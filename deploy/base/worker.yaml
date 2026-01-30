@@ -13,9 +13,6 @@ spec:
       labels:
         app: clipsearch-worker
     spec:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
       containers:
         - name: clipsearch-worker
           image: ghcr.io/dawidbera/clipsearch-worker:latest
@@ -36,7 +33,7 @@ spec:
               memory: "256Mi"
               cpu: "100m"
             limits:
-              memory: "512Mi"
+              memory: "384Mi"
               cpu: "500m"
           readinessProbe:
             httpGet:

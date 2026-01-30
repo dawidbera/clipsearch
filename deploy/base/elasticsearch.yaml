@@ -13,8 +13,6 @@ spec:
       labels:
         app: elasticsearch
     spec:
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: elasticsearch
           image: elasticsearch:8.19.10
@@ -26,16 +24,16 @@ spec:
             - name: xpack.security.enabled
               value: "false"
             - name: ES_JAVA_OPTS
-              value: "-Xms512m -Xmx512m"
+              value: "-Xms256m -Xmx256m"
           ports:
             - containerPort: 9200
           resources:
             requests:
+              memory: "512Mi"
+              cpu: "100m"
+            limits:
               memory: "1Gi"
               cpu: "500m"
-            limits:
-              memory: "2Gi"
-              cpu: "1000m"
           volumeMounts:
             - name: es-data
               mountPath: /usr/share/elasticsearch/data
