@@ -16,11 +16,11 @@ NAMESPACE=$(grep "namespace:" deploy/overlays/openshift-sandbox/kustomization.ya
 echo "🎯 Target namespace: $NAMESPACE"
 
 # 2.5 Build and Push images
-echo "🛠 Building and Pushing images to GHCR..."
+echo "🛠 Building and Pushing images to GHCR (NO CACHE)..."
 # We assume user is logged in to docker/podman to ghcr.io
-docker build -t ghcr.io/dawidbera/clipsearch-api:latest -f backend/api/Dockerfile backend
-docker build -t ghcr.io/dawidbera/clipsearch-worker:latest -f backend/worker/Dockerfile backend
-docker build -t ghcr.io/dawidbera/clipsearch-frontend:latest -f frontend/Dockerfile frontend
+docker build --no-cache -t ghcr.io/dawidbera/clipsearch-api:latest -f backend/api/Dockerfile backend
+docker build --no-cache -t ghcr.io/dawidbera/clipsearch-worker:latest -f backend/worker/Dockerfile backend
+docker build --no-cache -t ghcr.io/dawidbera/clipsearch-frontend:latest -f frontend/Dockerfile frontend
 
 docker push ghcr.io/dawidbera/clipsearch-api:latest
 docker push ghcr.io/dawidbera/clipsearch-worker:latest

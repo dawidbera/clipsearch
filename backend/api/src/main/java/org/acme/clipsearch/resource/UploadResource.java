@@ -139,12 +139,6 @@ public class UploadResource {
 
         String url = s3Presigner.presignGetObject(presignRequest).url().toString();
 
-        // Local development hack: if URL contains 'localstack', replace it with 'localhost' 
-        // so the host browser can reach it.
-        if (url.contains("http://localstack:")) {
-            url = url.replace("http://localstack:", "http://localhost:");
-        }
-
         ObjectNode result = mapper.createObjectNode();
         result.put("url", url);
         return result;

@@ -1,13 +1,14 @@
 # ClipSearch 📎🔍
 
-ClipSearch is a modern, asynchronous document search engine built with a microservices architecture. It allows uploading files (text, PDF, and images), automatically extracting their content using OCR, and generating **AI-powered summaries** using a local LLM.
+ClipSearch is a modern, asynchronous document search engine built with a microservices architecture. It allows uploading files (text, PDF, and images), automatically extracting their content, and generating **AI-powered summaries** using a local LLM.
 
 ## 🌟 Key Features
-- **AI Summarization:** Get concise, 2-3 bullet point summaries of your documents automatically, powered by **local Phi-3 model via Ollama**.
-- **OCR Support:** Extract text from images (PNG, JPG) in English and German using **Tesseract**.
-- **Full-Text Search:** High-performance search for TXT and PDF documents via **Elasticsearch**.
-- **Data Persistence:** Persistent storage for the search index using Kubernetes PVCs.
-- **Microservices Architecture:** Scalable design with Quarkus (API & Worker), S3, and SQS.
+- **AI Summarization:** Get concise summaries of your documents automatically, powered by **local Phi-3 model via Ollama**.
+- **OCR Support:** Extract text from images (PNG, JPG) using **Tesseract**.
+- **Advanced File Processing:** High-performance text extraction from PDF and TXT documents via **Apache Tika**.
+- **Full-Text Search:** Scalable search engine powered by **Elasticsearch**.
+- **Microservices Architecture:** Built with Quarkus (API & Worker), S3 (LocalStack), and SQS (LocalStack).
+- **Deployment Ready:** Supports both Docker Compose for local dev and OpenShift/Kubernetes for production.
 
 ## 🚀 Quick Start (Local Dev)
 
@@ -30,12 +31,26 @@ ClipSearch is a modern, asynchronous document search engine built with a microse
 
 ## 🏗️ Architecture
 
-1.  **Frontend (Angular):** Clean UI with pagination, filtering, and file downloads.
-2.  **API (Quarkus):** Handles S3 uploads and pre-signed download URLs.
-3.  **Worker (Quarkus):** Processes documents, performs OCR, and calls **local AI** for summarization.
-4.  **Elasticsearch:** Search engine with persistent volumes.
-5.  **LocalStack:** AWS S3/SQS emulator.
-6.  **Ollama (Host):** Local LLM engine for document summarization.
+1.  **Frontend (Angular):** Responsive UI for document management and search.
+2.  **API (Quarkus):** RESTful interface for file uploads and search queries.
+3.  **Worker (Quarkus):** Background processor for OCR, Tika extraction, and AI summarization.
+4.  **Elasticsearch:** Core search engine with persistent storage.
+5.  **LocalStack:** Emulates AWS S3 and SQS for development.
+6.  **Ollama:** Local LLM engine providing privacy-focused AI summaries.
+
+## ☁️ Cloud Deployment
+
+### OpenShift
+A helper script is provided for deploying to OpenShift using Kustomize:
+```bash
+./deploy-openshift.sh
+```
+Ensure you are logged in (`oc login`) and have the necessary permissions in your target namespace.
+
+## 🛠 CI/CD
+The project uses GitHub Actions for continuous integration.
+- **Images:** Automatically built and pushed to **GitHub Container Registry (GHCR)**.
+- **Registry:** `ghcr.io/dawidbera/clipsearch-*`
 
 ---
 Created by [dawidbera](https://github.com/dawidbera)

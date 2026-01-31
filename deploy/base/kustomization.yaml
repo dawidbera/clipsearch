@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - config.yaml
   - localstack.yaml
+  - localstack-route.yaml
   - localstack-init.yaml
   - elasticsearch.yaml
   - api.yaml
