@@ -1,55 +1,86 @@
-# ClipSearch 📎🔍
+# ClipSearch
 
-ClipSearch is a modern, asynchronous document search engine built with a microservices architecture. It allows uploading files (text, PDF, and images), automatically extracting their content, and generating **AI-powered summaries** using a local LLM.
+ClipSearch is a production-ready, asynchronous document search engine designed for high-performance indexing and AI-powered summarization of PDF and TXT files. Built with a cloud-native architecture, it leverages a distributed pipeline to process documents and provide instant, searchable insights.
 
-## 🌟 Key Features
-- **AI Summarization:** Get concise summaries of your documents automatically, powered by **local TinyLlama model via Ollama**.
-- **Advanced File Processing:** High-performance text extraction from PDF and TXT documents via **Apache Tika**.
-- **Full-Text Search:** Scalable search engine powered by **Elasticsearch**.
-- **Microservices Architecture:** Built with Quarkus (API & Worker), S3 (LocalStack), and SQS (LocalStack).
-- **Deployment Ready:** Supports both Docker Compose for local dev and OpenShift/Kubernetes for production.
+## Key Features
 
-## 🚀 Quick Start (Local Dev)
+- **Asynchronous Processing:** S3-triggered events handled via SQS and dedicated workers.
+- **AI Summarization:** Automated generation of 2-3 bullet point summaries using local LLMs (TinyLlama/Ollama).
+- **Full-Text Search:** High-performance indexing and retrieval powered by Elasticsearch.
+- **Enterprise-Ready:** Fully containerized and optimized for OpenShift/Kubernetes deployment.
+- **Clean UI:** Modern Angular-based frontend for seamless file uploads and search.
 
-### Prerequisites
-- Docker & Docker Compose
-- **Ollama** installed on your host machine (for AI features)
-  - Run `ollama pull tinyllama`
+## How It Works
 
-### Running the App
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/dawidbera/clipsearch.git
-   cd clipsearch
-   ```
-2. Start the application:
-   ```bash
-   docker-compose up --build
-   ```
-3. Open in your browser: [http://localhost:4200](http://localhost:4200)
+1. **Ingestion:** Users upload PDF/TXT files via the API, which stores them in S3.
+2. **Messaging:** An event is pushed to an SQS queue to trigger background processing.
+3. **Extraction:** Workers pull the event, extract text using Apache Tika, and request a summary from the AI engine.
+4. **Indexing:** The metadata, extracted text, and AI summary are indexed into Elasticsearch for real-time searching.
 
-## 🏗️ Architecture
+## Architecture
 
-1.  **Frontend (Angular):** Responsive UI for document management and search.
-2.  **API (Quarkus):** RESTful interface for file uploads and search queries.
-3.  **Worker (Quarkus):** Background processor for Tika extraction and AI summarization.
-4.  **Elasticsearch:** Core search engine with persistent storage.
-5.  **LocalStack:** Emulates AWS S3 and SQS for development.
-6.  **Ollama:** Local LLM engine providing privacy-focused AI summaries.
-
-## ☁️ Cloud Deployment
-
-### OpenShift
-A helper script is provided for deploying to OpenShift using Kustomize:
-```bash
-./deploy-openshift.sh
+```mermaid
+graph LR
+    User((User)) -->|Upload/Search| FE[Angular Frontend]
+    FE -->|REST API| API[Quarkus API]
+    API -->|1. Store| S3[(S3 Storage)]
+    API -->|2. Notify| SQS[SQS Queue]
+    SQS -->|3. Trigger| Worker[Quarkus Worker]
+    Worker -->|4. Summarize| LLM[Ollama/TinyLlama]
+    Worker -->|5. Index| ES[(Elasticsearch)]
+    API -->|Search| ES
 ```
-Ensure you are logged in (`oc login`) and have the necessary permissions in your target namespace.
 
-## 🛠 CI/CD
-The project uses GitHub Actions for continuous integration.
-- **Images:** Automatically built and pushed to **GitHub Container Registry (GHCR)**.
-- **Registry:** `ghcr.io/dawidbera/clipsearch-*`
+## Tech Stack
 
----
-Created by [dawidbera](https://github.com/dawidbera)
+- **Backend:** Java 17, Quarkus, LangChain4j, Apache Tika.
+- **Frontend:** Angular 19, Tailwind CSS.
+- **Infrastructure:** Elasticsearch, LocalStack (S3/SQS).
+- **AI Engine:** Ollama / Red Hat OpenShift AI.
+- **Deployment:** Docker Compose, OpenShift (Kustomize).
+
+## How to Run
+
+### Local Development
+
+1. **Prerequisites:** Docker and Docker Compose installed.
+2. **Start Services:**
+   ```bash
+   docker-compose up -d
+   ```
+3. **Access UI:** Open `http://localhost:4200` in your browser.
+
+### Build from Source
+
+```bash
+# Backend
+mvn -f backend/pom.xml clean package -pl api,worker -am
+
+# Frontend
+cd frontend && npm install && npm run build
+```
+
+## Use Cases
+
+- **Knowledge Management:** Quick indexing of internal documentation and research papers.
+- **Automated Summarization:** Fast-tracking document review with AI-generated snippets.
+- **Searchable Archives:** Converting large volumes of static files into a searchable database.
+
+## 🚀 CI/CD Pipeline
+
+The project uses GitHub Actions (`.github/workflows/ci.yml`) to:
+1.  Build Java components with Maven.
+2.  Build Docker images for API, Worker, and Frontend.
+3.  Push images to `ghcr.io/dawidbera/clipsearch-*`.
+
+## 🛠 Troubleshooting
+
+### Common Issues
+*   **405 on Uploads:** Consistently use `UploadResource` for all upload-related logic.
+*   **Single Search Result:** Ensure `uploadId` is used as the Elasticsearch `_id` to avoid duplicates or overwrites.
+*   **S3 Connectivity:** Use `path-style access` and ensure endpoints are correctly resolved (internal vs external).
+*   **Ollama Connection:** Ensure Ollama is running and accessible (check `llm-standalone` logs on OpenShift).
+
+## Demo
+
+![ClipSearch demo](docs/screenshot.png)
