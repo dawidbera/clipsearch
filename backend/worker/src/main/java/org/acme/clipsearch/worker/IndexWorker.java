@@ -37,13 +37,14 @@ public class IndexWorker {
 
     @RegisterAiService
     public interface AiService {
-        @SystemMessage("You are a helpful assistant that summarizes documents. Provide a concise summary in 2-3 bullet points.")
-        @UserMessage("Please summarize the following text: {text}")
+        @SystemMessage("You are a literal document summarizer. " +
+                       "Instructions: " +
+                       "1. Summarize ONLY the text provided by the user. " +
+                       "2. DO NOT add outside knowledge or facts not present in the text. " +
+                       "3. Always respond in English. " +
+                       "4. Provide exactly 2-3 bullet points.")
+        @UserMessage("Summarize this document content: {text}")
         String summarize(String text);
-
-        @SystemMessage("You are a helpful assistant that extracts keywords from documents. Return 3-5 keywords separated by commas.")
-        @UserMessage("Please extract keywords from the following text: {text}")
-        String extractKeywords(String text);
     }
 
     @Inject
@@ -154,32 +155,19 @@ public class IndexWorker {
                 }
                 doc.put("content", extractedContent);
 
-                // AI Summarization & Keyword Extraction
+                // AI Summarization
                 if (aiEnabled && extractedContent.trim().length() > 50) {
                     try {
-                        log.info("Generating AI insights for {}", event.getFilename());
-                        // Send max 5000 chars to AI for insights to avoid overwhelming it
+                        log.info("Generating AI summary for {}", event.getFilename());
+                        // Send max 5000 chars to AI for summary
                         String textToSummarize = extractedContent.substring(0, Math.min(extractedContent.length(), 5000));
                         
-                        // Summary
                         String summary = aiService.summarize(textToSummarize);
                         doc.put("summary", summary);
                         
-                        // Keywords/Tags
-                        String keywords = aiService.extractKeywords(textToSummarize);
-                        if (keywords != null && !keywords.isBlank()) {
-                            String[] kws = keywords.split(",");
-                            for (String kw : kws) {
-                                String trimmed = kw.trim();
-                                if (!trimmed.isEmpty()) {
-                                    tagsArray.add(trimmed.toLowerCase());
-                                }
-                            }
-                        }
-                        
-                        log.info("AI Insights generated successfully");
+                        log.info("AI Summary generated successfully");
                     } catch (Exception e) {
-                        log.warn("AI processing failed: {}", e.getMessage());
+                        log.warn("AI summarization failed: {}", e.getMessage());
                     }
                 }
             }

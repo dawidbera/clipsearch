@@ -54,6 +54,10 @@
                 <span class="material-icons" style="font-size: 16px; vertical-align: middle;">download</span>
                 Download
               </button>
+              <button class="btn btn-sm btn-outline-danger me-2" (click)="deleteUpload(item.id)">
+                <span class="material-icons" style="font-size: 16px; vertical-align: middle;">delete</span>
+                Delete
+              </button>
               <small class="text-muted">{{ item.uploadedAt | date:'short' }}</small>
             </div>
           </div>
@@ -143,12 +147,17 @@
           <td><code>{{ item.contentType }}</code></td>
           <td>{{ formatSize(item.sizeBytes) }}</td>
           <td>{{ item.uploadedAt | date:'short' }}</td>
-          <td>
-            <span *ngFor="let tag of item.tags" class="badge bg-secondary me-1">{{ tag }}</span>
+          <td style="max-width: 300px;">
+            <div class="d-flex flex-wrap gap-1">
+              <span *ngFor="let tag of item.tags" class="badge bg-secondary">{{ tag }}</span>
+            </div>
           </td>
-          <td>
-            <button class="btn btn-sm btn-outline-success" (click)="downloadFile(item.id)">
+          <td style="white-space: nowrap;">
+            <button class="btn btn-sm btn-outline-success me-1" (click)="downloadFile(item.id)">
               Download
+            </button>
+            <button class="btn btn-sm btn-outline-danger" (click)="deleteUpload(item.id)">
+              Delete
             </button>
           </td>
         </tr>

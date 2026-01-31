@@ -5,4 +5,4 @@ target/
 dist/
 .angular/
 node_modules/
-.DS_Store
+.DS_Store.test-files/

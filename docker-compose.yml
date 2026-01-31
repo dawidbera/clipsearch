@@ -49,9 +49,9 @@ services:
       - S3_ENDPOINT=http://localstack:4566
       - SQS_ENDPOINT=http://localstack:4566
       - ES_URL=elasticsearch:9200
-      - RHOAI_BASE_URL=${RHOAI_BASE_URL:-http://ollama:11434/v1}
-      - RHOAI_API_KEY=${RHOAI_API_KEY:-ollama}
-      - RHOAI_MODEL_NAME=${RHOAI_MODEL_NAME:-tinyllama}
+      - RHOAI_BASE_URL=http://ollama:11434/v1
+      - RHOAI_API_KEY=none
+      - RHOAI_MODEL_NAME=tinyllama
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_REGION=us-east-1
@@ -68,7 +68,7 @@ services:
   ollama:
     image: ollama/ollama:latest
     ports:
-      - "11434:11434"
+      - "11435:11434"
     volumes:
       - ollama_data:/root/.ollama
     # Automatically pull the model on startup

@@ -120,6 +120,30 @@ export class AppComponent implements OnInit {
     });
   }
 
+  deleteUpload(id: string) {
+    if (confirm('Are you sure you want to delete this file?')) {
+      this.api.deleteUpload(id).subscribe({
+        next: () => {
+          // 1. Immediate local UI update
+          this.recentUploads = this.recentUploads.filter(item => item.id !== id && item.uploadId !== id);
+          this.searchResults.items = this.searchResults.items.filter(item => item.id !== id);
+          this.searchResults.total--;
+
+          // 2. Wait a bit for ES to refresh and then reload everything to be sure
+          setTimeout(() => {
+            this.loadRecent();
+            if (this.activeTab === 'search') {
+              this.search(this.currentPage);
+            }
+          }, 1000);
+        },
+        error: (err) => {
+          alert('Error deleting file: ' + err.message);
+        }
+      });
+    }
+  }
+
   loadRecent() {
     this.loadingRecent = true;
     this.api.listUploads(10).subscribe({

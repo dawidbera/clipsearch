@@ -139,6 +139,12 @@ public class UploadResource {
 
         String url = s3Presigner.presignGetObject(presignRequest).url().toString();
 
+        // Local development hack: if URL contains 'localstack', replace it with 'localhost' 
+        // so the host browser can reach it.
+        if (url.contains("http://localstack:")) {
+            url = url.replace("http://localstack:", "http://localhost:");
+        }
+
         ObjectNode result = mapper.createObjectNode();
         result.put("url", url);
         return result;
@@ -153,6 +159,43 @@ public class UploadResource {
         root.putArray("sort").addObject().putObject("uploadedAt").put("order", "desc");
 
         return executeSearch(root);
+    }
+
+    @DELETE
+    @Path("/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public jakarta.ws.rs.core.Response delete(@PathParam("id") String id) throws IOException {
+        // 1. Find in ES to get bucket and key
+        Request esGetRequest = new Request("GET", "/" + INDEX + "/_doc/" + id);
+        try {
+            Response esResponse = restClient.performRequest(esGetRequest);
+            JsonNode doc = mapper.readTree(EntityUtils.toString(esResponse.getEntity()));
+            JsonNode source = doc.path("_source");
+
+            String bucket = source.path("bucket").asText();
+            String key = source.path("key").asText();
+
+            // 2. Delete from S3
+            s3.deleteObject(software.amazon.awssdk.services.s3.model.DeleteObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .build());
+
+            // 3. Delete from ES
+            Request esDeleteRequest = new Request("DELETE", "/" + INDEX + "/_doc/" + id);
+            restClient.performRequest(esDeleteRequest);
+
+            // 4. Force Index Refresh (important for near-real-time search)
+            Request refreshRequest = new Request("POST", "/" + INDEX + "/_refresh");
+            restClient.performRequest(refreshRequest);
+
+            return jakarta.ws.rs.core.Response.noContent().build();
+        } catch (Exception e) {
+            if (e.getMessage().contains("404")) {
+                return jakarta.ws.rs.core.Response.status(jakarta.ws.rs.core.Response.Status.NOT_FOUND).build();
+            }
+            throw e;
+        }
     }
 
     private JsonNode executeSearch(ObjectNode dsl) throws IOException {

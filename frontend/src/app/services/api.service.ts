@@ -66,4 +66,8 @@ export class ApiService {
   getDownloadUrl(id: string): Observable<{url: string}> {
     return this.http.get<{url: string}>(`${this.apiUrl}/uploads/${id}/download`);
   }
+
+  deleteUpload(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/uploads/${id}`);
+  }
 }
