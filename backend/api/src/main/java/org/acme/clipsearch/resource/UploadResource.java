@@ -139,7 +139,7 @@ public class UploadResource {
         String bucket = source.path("bucket").asText();
         String key = source.path("key").asText();
 
-        log.info("Generating download URL for id: {}, bucket: {}, key: {}, using endpoint: {}", id, bucket, key, publicS3Endpoint);
+        log.infof("Generating download URL for id: %s, bucket: %s, key: %s, using endpoint: %s", id, bucket, key, publicS3Endpoint);
 
         // 2. Generate Presigned URL using PUBLIC endpoint
         try (S3Presigner presigner = S3Presigner.builder()

@@ -88,14 +88,14 @@ public class IndexWorker {
                 processMessage(queueUrl, message);
             }
         } catch (Exception e) {
-            log.error("Error polling SQS: {}", e.getMessage());
+            log.errorf("Error polling SQS: %s", e.getMessage());
         }
     }
 
     private void processMessage(String queueUrl, Message message) {
         try {
             SqsEvent event = mapper.readValue(message.body(), SqsEvent.class);
-            log.info("Processing file: {}/{}", event.getBucket(), event.getKey());
+            log.infof("Processing file: %s/%s", event.getBucket(), event.getKey());
 
             // 1. Get from S3
             GetObjectRequest getRequest = GetObjectRequest.builder()
@@ -139,9 +139,9 @@ public class IndexWorker {
             } else if ("application/pdf".equals(contentType) || (contentType != null && contentType.startsWith("image/"))) {
                 try {
                     extractedContent = tika.getText(new ByteArrayInputStream(contentBytes));
-                    log.info("Extracted {} chars from {}", extractedContent != null ? extractedContent.length() : 0, contentType);
+                    log.infof("Extracted %d chars from %s", extractedContent != null ? extractedContent.length() : 0, contentType);
                 } catch (Exception e) {
-                    log.warn("Failed to extract text from {} {}: {}", contentType, event.getKey(), e.getMessage());
+                    log.warnf("Failed to extract text from %s %s: %s", contentType, event.getKey(), e.getMessage());
                 }
             }
 
@@ -155,7 +155,7 @@ public class IndexWorker {
                 // AI Summarization
                 if (aiEnabled && extractedContent.trim().length() > 50) {
                     try {
-                        log.info("Generating AI summary for {}", event.getFilename());
+                        log.infof("Generating AI summary for %s", event.getFilename());
                         // Send max 5000 chars to AI for summary
                         String textToSummarize = extractedContent.substring(0, Math.min(extractedContent.length(), 5000));
                         
@@ -164,7 +164,7 @@ public class IndexWorker {
                         
                         log.info("AI Summary generated successfully");
                     } catch (Exception e) {
-                        log.warn("AI summarization failed: {}", e.getMessage());
+                        log.warnf("AI summarization failed: %s", e.getMessage());
                     }
                 }
             }
@@ -175,7 +175,7 @@ public class IndexWorker {
             esRequest.setJsonEntity(mapper.writeValueAsString(doc));
             esClient.performRequest(esRequest);
 
-            log.info("Successfully indexed document: {}", docId);
+            log.infof("Successfully indexed document: %s", docId);
 
             // 6. Delete from SQS
             sqs.deleteMessage(DeleteMessageRequest.builder()
@@ -184,7 +184,7 @@ public class IndexWorker {
                     .build());
 
         } catch (Exception e) {
-            log.error("Failed to process message {}: {}", message.messageId(), e.getMessage(), e);
+            log.errorf(e, "Failed to process message %s: %s", message.messageId(), e.getMessage());
         }
     }
 }
