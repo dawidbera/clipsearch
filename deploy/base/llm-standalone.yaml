@@ -35,7 +35,9 @@ spec:
             - "--model_path=/mnt/model"
             - "--port=8001"
             - "--rest_port=8888"
-            - "--allow_signature_endpoints"
+          env:
+            - name: HOME
+              value: "/tmp"
           ports:
             - containerPort: 8888
           resources:
