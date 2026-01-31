@@ -63,6 +63,13 @@ public class SearchResource {
             term.putObject("tags").put("value", tag);
         }
 
+        // Highlighting
+        ObjectNode highlight = root.putObject("highlight");
+        highlight.put("pre_tags", "<em>").put("post_tags", "</em>");
+        ObjectNode fields = highlight.putObject("fields");
+        fields.putObject("content").put("number_of_fragments", 3).put("fragment_size", 150);
+        fields.putObject("filename");
+
         // Execute
         return executeSearch(root);
     }
@@ -88,6 +95,15 @@ public class SearchResource {
                     item.put("id", hit.path("_id").asText());
                     // Copy fields
                     item.setAll((ObjectNode) source);
+                    
+                    // Add Highlights
+                    JsonNode highlight = hit.path("highlight");
+                    if (!highlight.isMissingNode()) {
+                        ObjectNode highlightObj = item.putObject("highlights");
+                        highlight.fields().forEachRemaining(entry -> {
+                            highlightObj.set(entry.getKey(), entry.getValue());
+                        });
+                    }
                 }
             }
             

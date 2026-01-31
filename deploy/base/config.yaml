@@ -2,14 +2,13 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: clipsearch-config
-  namespace: dawidbera-dev
 data:
-  S3_ENDPOINT: "http://172.30.175.12:4566"
-  SQS_ENDPOINT: "http://172.30.175.12:4566"
-  ES_URL: "172.30.5.162:9200"
+  S3_ENDPOINT: "http://localstack:4566"
+  SQS_ENDPOINT: "http://localstack:4566"
+  ES_URL: "elasticsearch:9200"
   S3_BUCKET: "clipsearch"
   SQS_QUEUE_NAME: "clipsearch-index-queue"
   ALLOWED_ORIGINS: "*"
-  RHOAI_BASE_URL: "http://172.30.251.238:80/v1"
+  RHOAI_BASE_URL: "http://llm-model:80/v1"
   RHOAI_MODEL_NAME: "llm-model"
   AI_ENABLED: "true"

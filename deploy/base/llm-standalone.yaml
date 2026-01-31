@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: llm-standalone
-  namespace: dawidbera-dev
 spec:
   replicas: 1
   selector:
@@ -58,7 +57,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: llm-standalone
-  namespace: dawidbera-dev
 spec:
   selector:
     app: llm-standalone

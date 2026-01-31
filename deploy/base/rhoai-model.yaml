@@ -2,7 +2,6 @@ apiVersion: serving.kserve.io/v1alpha1
 kind: ServingRuntime
 metadata:
   name: llm-server
-  namespace: dawidbera-dev
 spec:
   supportedModelFormats:
     - name: openvino_ir
@@ -23,7 +22,6 @@ apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
   name: llm-model
-  namespace: dawidbera-dev
   annotations:
     serving.kserve.io/deploymentMode: ModelMesh
 spec:

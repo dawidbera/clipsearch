@@ -6,3 +6,14 @@ namespace: dawidbera-dev
 resources:
   - ../../base
   - routes.yaml
+
+images:
+  - name: clipsearch-api
+    newName: ghcr.io/dawidbera/clipsearch-api
+    newTag: latest
+  - name: clipsearch-worker
+    newName: ghcr.io/dawidbera/clipsearch-worker
+    newTag: latest
+  - name: clipsearch-frontend
+    newName: ghcr.io/dawidbera/clipsearch-frontend
+    newTag: latest

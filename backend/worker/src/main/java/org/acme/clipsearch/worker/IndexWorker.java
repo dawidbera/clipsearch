@@ -36,10 +36,14 @@ import java.util.List;
 public class IndexWorker {
 
     @RegisterAiService
-    public interface Summarizer {
+    public interface AiService {
         @SystemMessage("You are a helpful assistant that summarizes documents. Provide a concise summary in 2-3 bullet points.")
         @UserMessage("Please summarize the following text: {text}")
         String summarize(String text);
+
+        @SystemMessage("You are a helpful assistant that extracts keywords from documents. Return 3-5 keywords separated by commas.")
+        @UserMessage("Please extract keywords from the following text: {text}")
+        String extractKeywords(String text);
     }
 
     @Inject
@@ -58,7 +62,7 @@ public class IndexWorker {
     TikaParser tika;
 
     @Inject
-    Summarizer summarizer;
+    AiService aiService;
 
     @ConfigProperty(name = "clipsearch.sqs.queue")
     String queueName;
@@ -150,17 +154,32 @@ public class IndexWorker {
                 }
                 doc.put("content", extractedContent);
 
-                // AI Summarization
+                // AI Summarization & Keyword Extraction
                 if (aiEnabled && extractedContent.trim().length() > 50) {
                     try {
-                        log.info("Generating AI summary for {}", event.getFilename());
-                        // Send max 5000 chars to AI for summary to avoid overwhelming it
+                        log.info("Generating AI insights for {}", event.getFilename());
+                        // Send max 5000 chars to AI for insights to avoid overwhelming it
                         String textToSummarize = extractedContent.substring(0, Math.min(extractedContent.length(), 5000));
-                        String summary = summarizer.summarize(textToSummarize);
+                        
+                        // Summary
+                        String summary = aiService.summarize(textToSummarize);
                         doc.put("summary", summary);
-                        log.info("AI Summary generated successfully");
+                        
+                        // Keywords/Tags
+                        String keywords = aiService.extractKeywords(textToSummarize);
+                        if (keywords != null && !keywords.isBlank()) {
+                            String[] kws = keywords.split(",");
+                            for (String kw : kws) {
+                                String trimmed = kw.trim();
+                                if (!trimmed.isEmpty()) {
+                                    tagsArray.add(trimmed.toLowerCase());
+                                }
+                            }
+                        }
+                        
+                        log.info("AI Insights generated successfully");
                     } catch (Exception e) {
-                        log.warn("AI Summarization failed: {}", e.getMessage());
+                        log.warn("AI processing failed: {}", e.getMessage());
                     }
                 }
             }

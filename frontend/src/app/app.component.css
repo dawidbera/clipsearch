@@ -1,0 +1,13 @@
+.badge {
+  font-weight: 500;
+}
+
+/* Search Highlights */
+::ng-deep em {
+  background-color: #fff3cd;
+  color: #856404;
+  font-style: normal;
+  font-weight: bold;
+  padding: 0 2px;
+  border-radius: 2px;
+}

@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: elasticsearch
-  namespace: clipsearch
 spec:
   replicas: 1
   selector:
@@ -52,7 +51,6 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: elasticsearch-pvc
-  namespace: clipsearch
 spec:
   accessModes:
     - ReadWriteOnce
@@ -64,7 +62,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: elasticsearch
-  namespace: clipsearch
 spec:
   selector:
     app: elasticsearch

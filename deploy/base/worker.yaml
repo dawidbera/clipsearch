@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: clipsearch-worker
-  namespace: clipsearch
 spec:
   replicas: 1
   selector:
@@ -15,7 +14,7 @@ spec:
     spec:
       containers:
         - name: clipsearch-worker
-          image: ghcr.io/dawidbera/clipsearch-worker:a5dffa2519a9fb7b384b791f8bc18f0aa1e60c69
+          image: clipsearch-worker:latest
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
