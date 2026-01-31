@@ -6,7 +6,7 @@ metadata:
 data:
   S3_ENDPOINT: "http://172.30.175.12:4566"
   SQS_ENDPOINT: "http://172.30.175.12:4566"
-  ES_URL: "http://172.30.5.162:9200"
+  ES_URL: "172.30.5.162:9200"
   S3_BUCKET: "clipsearch"
   SQS_QUEUE_NAME: "clipsearch-index-queue"
   ALLOWED_ORIGINS: "*"
