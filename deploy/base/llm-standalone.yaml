@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-standalone
+  namespace: dawidbera-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llm-standalone
+  template:
+    metadata:
+      labels:
+        app: llm-standalone
+    spec:
+      containers:
+        - name: ovms
+          image: openvino/model_server:latest
+          args:
+            - "--model_name=llm-model"
+            - "--model_path=https://huggingface.co/OpenVINO/TinyLlama-1.1B-Chat-v1.0-int4-ov/resolve/main/"
+            - "--port=8001"
+            - "--rest_port=8888"
+          ports:
+            - containerPort: 8888
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-standalone
+  namespace: dawidbera-dev
+spec:
+  selector:
+    app: llm-standalone
+  ports:
+    - port: 80
+      targetPort: 8888

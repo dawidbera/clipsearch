@@ -1,0 +1,37 @@
+apiVersion: serving.kserve.io/v1alpha1
+kind: ServingRuntime
+metadata:
+  name: llm-server
+  namespace: dawidbera-dev
+spec:
+  supportedModelFormats:
+    - name: openvino_ir
+      version: "opset1"
+  containers:
+    - name: ovms
+      image: quay.io/opendatahub/openvino_model_server:v2024.4
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "512Mi"
+        limits:
+          cpu: "1"
+          memory: "1Gi"
+  multiModel: true
+---
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: llm-model
+  namespace: dawidbera-dev
+  annotations:
+    serving.kserve.io/deploymentMode: ModelMesh
+spec:
+  predictor:
+    model:
+      modelFormat:
+        name: openvino_ir
+        version: "opset1"
+      runtime: llm-server
+      storage:
+        key: tiny-llama-connection
