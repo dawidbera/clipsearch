@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: clipsearch-frontend
-          image: ghcr.io/dawidbera/clipsearch-frontend:1d4893fe2fe1de23bb85ba29dda7150856fb848b
+          image: ghcr.io/dawidbera/clipsearch-frontend:a5dffa2519a9fb7b384b791f8bc18f0aa1e60c69
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

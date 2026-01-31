@@ -4,9 +4,9 @@ metadata:
   name: clipsearch-config
   namespace: clipsearch
 data:
-  S3_ENDPOINT: "http://localstack:4566"
-  SQS_ENDPOINT: "http://localstack:4566"
-  ES_URL: "http://elasticsearch:9200"
+  S3_ENDPOINT: "http://localstack.dawidbera-dev.svc.cluster.local:4566"
+  SQS_ENDPOINT: "http://localstack.dawidbera-dev.svc.cluster.local:4566"
+  ES_URL: "http://elasticsearch.dawidbera-dev.svc.cluster.local:9200"
   S3_BUCKET: "clipsearch"
   SQS_QUEUE_NAME: "clipsearch-index-queue"
   ALLOWED_ORIGINS: "*"
