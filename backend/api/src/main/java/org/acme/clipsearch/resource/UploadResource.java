@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import org.jboss.logging.Logger;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -40,6 +41,8 @@ import java.util.stream.Collectors;
 
 @Path("/api/uploads")
 public class UploadResource {
+
+    private static final Logger log = Logger.getLogger(UploadResource.class);
 
     @Inject
     S3Client s3;

@@ -9,7 +9,7 @@ import io.quarkus.scheduler.Scheduled;
 import io.quarkus.tika.TikaParser;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import lombok.extern.slf4j.Slf4j;
+import org.jboss.logging.Logger;
 import org.acme.clipsearch.model.SqsEvent;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.elasticsearch.client.Request;
@@ -31,9 +31,10 @@ import java.time.Instant;
 import java.util.HexFormat;
 import java.util.List;
 
-@Slf4j
 @ApplicationScoped
 public class IndexWorker {
+
+    private static final Logger log = Logger.getLogger(IndexWorker.class);
 
     @RegisterAiService
     public interface AiService {
