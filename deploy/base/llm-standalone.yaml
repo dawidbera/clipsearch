@@ -13,23 +13,44 @@ spec:
       labels:
         app: llm-standalone
     spec:
+      initContainers:
+        - name: download-model
+          image: busybox
+          command: ["sh", "-c"]
+          args:
+            - |
+              mkdir -p /mnt/model/1
+              cd /mnt/model/1
+              wget https://huggingface.co/OpenVINO/TinyLlama-1.1B-Chat-v1.0-int4-ov/resolve/main/openvino_model.xml
+              wget https://huggingface.co/OpenVINO/TinyLlama-1.1B-Chat-v1.0-int4-ov/resolve/main/openvino_model.bin
+              wget https://huggingface.co/OpenVINO/TinyLlama-1.1B-Chat-v1.0-int4-ov/resolve/main/config.json
+          volumeMounts:
+            - name: model-volume
+              mountPath: /mnt/model
       containers:
         - name: ovms
           image: openvino/model_server:latest
           args:
             - "--model_name=llm-model"
-            - "--model_path=https://huggingface.co/OpenVINO/TinyLlama-1.1B-Chat-v1.0-int4-ov/resolve/main/"
+            - "--model_path=/mnt/model"
             - "--port=8001"
             - "--rest_port=8888"
+            - "--allow_signature_endpoints"
           ports:
             - containerPort: 8888
           resources:
             requests:
-              memory: "1Gi"
+              memory: "512Mi"
               cpu: "500m"
             limits:
               memory: "2Gi"
               cpu: "1"
+          volumeMounts:
+            - name: model-volume
+              mountPath: /mnt/model
+      volumes:
+        - name: model-volume
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
