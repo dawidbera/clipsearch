@@ -12,45 +12,44 @@ spec:
       labels:
         app: llm-standalone
     spec:
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          ports:
+            - containerPort: 11434
+          env:
+            - name: OLLAMA_HOST
+              value: "0.0.0.0"
+            - name: HOME
+              value: "/tmp"
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "1"
+            limits:
+              memory: "2Gi"
+              cpu: "2"
+          volumeMounts:
+            - name: ollama-data
+              mountPath: /tmp/.ollama
       initContainers:
-        - name: download-model
-          image: busybox
+        - name: pull-model
+          image: ollama/ollama:latest
           command: ["sh", "-c"]
           args:
             - |
-              mkdir -p /mnt/model/1
-              cd /mnt/model/1
-              wget https://huggingface.co/OpenVINO/TinyLlama-1.1B-Chat-v1.0-int4-ov/resolve/main/openvino_model.xml
-              wget https://huggingface.co/OpenVINO/TinyLlama-1.1B-Chat-v1.0-int4-ov/resolve/main/openvino_model.bin
-              wget https://huggingface.co/OpenVINO/TinyLlama-1.1B-Chat-v1.0-int4-ov/resolve/main/config.json
-          volumeMounts:
-            - name: model-volume
-              mountPath: /mnt/model
-      containers:
-        - name: ovms
-          image: openvino/model_server:latest
-          args:
-            - "--model_name=llm-model"
-            - "--model_path=/mnt/model"
-            - "--port=8001"
-            - "--rest_port=8888"
+              ollama serve & 
+              sleep 5
+              ollama pull tinyllama
+              pkill ollama
           env:
             - name: HOME
               value: "/tmp"
-          ports:
-            - containerPort: 8888
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "500m"
-            limits:
-              memory: "2Gi"
-              cpu: "1"
           volumeMounts:
-            - name: model-volume
-              mountPath: /mnt/model
+            - name: ollama-data
+              mountPath: /tmp/.ollama
       volumes:
-        - name: model-volume
+        - name: ollama-data
           emptyDir: {}
 ---
 apiVersion: v1
@@ -62,4 +61,4 @@ spec:
     app: llm-standalone
   ports:
     - port: 80
-      targetPort: 8888
+      targetPort: 11434

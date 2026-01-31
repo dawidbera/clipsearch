@@ -20,6 +20,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -43,8 +44,17 @@ public class UploadResource {
     @Inject
     S3Client s3;
 
-    @Inject
-    S3Presigner s3Presigner;
+    @ConfigProperty(name = "CLIPSEARCH_PUBLIC_S3_ENDPOINT")
+    String publicS3Endpoint;
+
+    @ConfigProperty(name = "AWS_REGION", defaultValue = "us-east-1")
+    String awsRegion;
+
+    @ConfigProperty(name = "AWS_ACCESS_KEY_ID", defaultValue = "test")
+    String accessKey;
+
+    @ConfigProperty(name = "AWS_SECRET_ACCESS_KEY", defaultValue = "test")
+    String secretKey;
 
     @Inject
     SqsClient sqs;
@@ -126,22 +136,33 @@ public class UploadResource {
         String bucket = source.path("bucket").asText();
         String key = source.path("key").asText();
 
-        // 2. Generate Presigned URL
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucket)
-                .key(key)
-                .build();
+        log.info("Generating download URL for id: {}, bucket: {}, key: {}, using endpoint: {}", id, bucket, key, publicS3Endpoint);
 
-        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(15))
-                .getObjectRequest(getObjectRequest)
-                .build();
+        // 2. Generate Presigned URL using PUBLIC endpoint
+        try (S3Presigner presigner = S3Presigner.builder()
+                .endpointOverride(java.net.URI.create(publicS3Endpoint))
+                .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
+                .region(software.amazon.awssdk.regions.Region.of(awsRegion))
+                .credentialsProvider(software.amazon.awssdk.auth.credentials.StaticCredentialsProvider.create(
+                        software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create(accessKey, secretKey)))
+                .build()) {
 
-        String url = s3Presigner.presignGetObject(presignRequest).url().toString();
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .build();
 
-        ObjectNode result = mapper.createObjectNode();
-        result.put("url", url);
-        return result;
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(15))
+                    .getObjectRequest(getObjectRequest)
+                    .build();
+
+            String url = presigner.presignGetObject(presignRequest).url().toString();
+
+            ObjectNode result = mapper.createObjectNode();
+            result.put("url", url);
+            return result;
+        }
     }
 
     @GET

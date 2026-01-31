@@ -37,13 +37,9 @@ public class IndexWorker {
 
     @RegisterAiService
     public interface AiService {
-        @SystemMessage("You are a literal document summarizer. " +
-                       "Instructions: " +
-                       "1. Summarize ONLY the text provided by the user. " +
-                       "2. DO NOT add outside knowledge or facts not present in the text. " +
-                       "3. Always respond in English. " +
-                       "4. Provide exactly 2-3 bullet points.")
-        @UserMessage("Summarize this document content: {text}")
+        @UserMessage("Summarize the following text in 2-3 short bullet points in English. " +
+                     "Output only the bullet points. " +
+                     "Text: {text}")
         String summarize(String text);
     }
 

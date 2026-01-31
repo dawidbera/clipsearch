@@ -23,7 +23,6 @@ ClipSearch is a distributed system consisting of several microservices coordinat
     *   **Technology:** Quarkus (Java)
     *   **Responsibilities:**
         *   Listens for SQS events (triggered by S3 uploads).
-        *   **OCR:** Tesseract for images.
         *   **Text Extraction:** Apache Tika for PDFs and TXT files.
         *   **AI Summarization:** Communicates with Ollama (Phi-3) for document summaries.
         *   **Indexing:** Pushes processed content to Elasticsearch.
@@ -38,7 +37,7 @@ ClipSearch is a distributed system consisting of several microservices coordinat
 1.  **Upload:** User uploads a file via Frontend -> API -> S3 (LocalStack).
 2.  **Notification:** S3 triggers an event -> SQS Queue.
 3.  **Processing:** Worker picks up message from SQS -> Downloads file from S3.
-4.  **Analysis:** Worker runs OCR/Tika -> Worker calls Ollama for summary.
+4.  **Analysis:** Worker runs Tika -> Worker calls Ollama for summary.
 5.  **Indexing:** Worker sends text and summary to Elasticsearch.
 6.  **Search:** User searches via Frontend -> API -> Elasticsearch.
 

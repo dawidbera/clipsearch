@@ -2,7 +2,6 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: clipsearch-frontend
-  namespace: clipsearch
 spec:
   to:
     kind: Service
@@ -17,7 +16,6 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: clipsearch-api
-  namespace: clipsearch
 spec:
   to:
     kind: Service

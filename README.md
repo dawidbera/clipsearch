@@ -3,8 +3,7 @@
 ClipSearch is a modern, asynchronous document search engine built with a microservices architecture. It allows uploading files (text, PDF, and images), automatically extracting their content, and generating **AI-powered summaries** using a local LLM.
 
 ## 🌟 Key Features
-- **AI Summarization:** Get concise summaries of your documents automatically, powered by **local Phi-3 model via Ollama**.
-- **OCR Support:** Extract text from images (PNG, JPG) using **Tesseract**.
+- **AI Summarization:** Get concise summaries of your documents automatically, powered by **local TinyLlama model via Ollama**.
 - **Advanced File Processing:** High-performance text extraction from PDF and TXT documents via **Apache Tika**.
 - **Full-Text Search:** Scalable search engine powered by **Elasticsearch**.
 - **Microservices Architecture:** Built with Quarkus (API & Worker), S3 (LocalStack), and SQS (LocalStack).
@@ -15,7 +14,7 @@ ClipSearch is a modern, asynchronous document search engine built with a microse
 ### Prerequisites
 - Docker & Docker Compose
 - **Ollama** installed on your host machine (for AI features)
-  - Run `ollama pull phi3:mini`
+  - Run `ollama pull tinyllama`
 
 ### Running the App
 1. Clone the repository:
@@ -33,7 +32,7 @@ ClipSearch is a modern, asynchronous document search engine built with a microse
 
 1.  **Frontend (Angular):** Responsive UI for document management and search.
 2.  **API (Quarkus):** RESTful interface for file uploads and search queries.
-3.  **Worker (Quarkus):** Background processor for OCR, Tika extraction, and AI summarization.
+3.  **Worker (Quarkus):** Background processor for Tika extraction and AI summarization.
 4.  **Elasticsearch:** Core search engine with persistent storage.
 5.  **LocalStack:** Emulates AWS S3 and SQS for development.
 6.  **Ollama:** Local LLM engine providing privacy-focused AI summaries.

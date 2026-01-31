@@ -69,5 +69,10 @@
     </dependency>
         <!-- Test -->
 
-  </dependencies>
-</project>
+          <dependency>
+              <groupId>io.quarkus</groupId>
+              <artifactId>quarkus-junit5-mockito</artifactId>
+              <scope>test</scope>
+          </dependency>
+      </dependencies>
+  </project>

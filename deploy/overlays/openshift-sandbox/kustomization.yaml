@@ -1,19 +1,21 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: dawidbera-dev
-
 resources:
   - ../../base
   - routes.yaml
 
+# Overriding images to use internal OpenShift ImageStreams
 images:
   - name: clipsearch-api
-    newName: ghcr.io/dawidbera/clipsearch-api
+    newName: image-registry.openshift-image-registry.svc:5000/dawidbera-dev/clipsearch-api
     newTag: latest
   - name: clipsearch-worker
-    newName: ghcr.io/dawidbera/clipsearch-worker
+    newName: image-registry.openshift-image-registry.svc:5000/dawidbera-dev/clipsearch-worker
     newTag: latest
   - name: clipsearch-frontend
-    newName: ghcr.io/dawidbera/clipsearch-frontend
+    newName: image-registry.openshift-image-registry.svc:5000/dawidbera-dev/clipsearch-frontend
     newTag: latest
+
+generatorOptions:
+  disableNameSuffixHash: true

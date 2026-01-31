@@ -11,6 +11,7 @@ WORKDIR /code
 
 FROM maven:3.9.6-eclipse-temurin-17 AS builder
 WORKDIR /app
+ENV MAVEN_OPTS="-Xmx6g -XX:+UseG1GC"
 COPY pom.xml .
 COPY common /app/common
 COPY api /app/api
