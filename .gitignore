@@ -1,1 +1,8 @@
 .env
+logs.txt
+*.log
+target/
+dist/
+.angular/
+node_modules/
+.DS_Store
