@@ -91,6 +91,10 @@ public class SearchResource {
 
     /**
      * Sends the DSL query to Elasticsearch and transforms the response into a frontend-friendly format.
+     *
+     * @param dsl The Elasticsearch Query DSL as a JSON object.
+     * @return A JSON object with "items" and "total" fields.
+     * @throws IOException If the request fails.
      */
     private JsonNode executeSearch(ObjectNode dsl) throws IOException {
         Request request = new Request("GET", "/" + INDEX + "/_search");

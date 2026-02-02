@@ -247,6 +247,15 @@ public class UploadResource {
         }
     }
 
+    /**
+     * Executes a search request against Elasticsearch using the provided Query DSL.
+     * Transforms the raw Elasticsearch response into a simplified JSON structure
+     * containing the list of items and the total count.
+     *
+     * @param dsl The Elasticsearch Query DSL as a JSON object.
+     * @return A JSON object with "items" and "total" fields.
+     * @throws IOException If the request fails.
+     */
     private JsonNode executeSearch(ObjectNode dsl) throws IOException {
         Request request = new Request("GET", "/" + INDEX + "/_search");
         request.setJsonEntity(mapper.writeValueAsString(dsl));
