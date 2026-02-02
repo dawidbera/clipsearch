@@ -16,6 +16,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * REST API Resource for searching indexed documents in Elasticsearch.
+ * Provides full-text search, filtering by content type and tags, and pagination.
+ */
 @Path("/api/search")
 @Produces(MediaType.APPLICATION_JSON)
 public class SearchResource {
@@ -28,6 +32,16 @@ public class SearchResource {
 
     private static final String INDEX = "clipsearch-uploads";
 
+    /**
+     * Executes a search against the Elasticsearch index.
+     * 
+     * @param q The search query string for full-text search.
+     * @param contentType Filter by MIME type (optional).
+     * @param tag Filter by a specific tag (optional).
+     * @param page Zero-based page index for pagination.
+     * @param size Number of results per page.
+     * @return A JSON object containing a list of matching items and the total hit count.
+     */
     @GET
     public JsonNode search(@QueryParam("q") String q,
                            @QueryParam("contentType") String contentType,
@@ -35,7 +49,7 @@ public class SearchResource {
                            @QueryParam("page") @DefaultValue("0") int page,
                            @QueryParam("size") @DefaultValue("10") int size) throws IOException {
 
-        // Build DSL Query
+        // Build the Elasticsearch Query Domain Specific Language (DSL)
         ObjectNode root = mapper.createObjectNode();
         root.put("from", page * size);
         root.put("size", size);
@@ -44,16 +58,17 @@ public class SearchResource {
         ObjectNode bool = query.putObject("bool");
         ArrayNode must = bool.putArray("must");
 
-        // Full text search
+        // Full text search: matches both filename and extracted content
         if (q != null && !q.isBlank()) {
             ObjectNode multiMatch = must.addObject().putObject("multi_match");
             multiMatch.put("query", q);
             multiMatch.putArray("fields").add("filename").add("content");
         } else {
+            // Default to matching everything if no query is provided
             must.addObject().putObject("match_all");
         }
 
-        // Filters
+        // Apply filters: these use 'term' queries for exact matching
         if (contentType != null && !contentType.isBlank()) {
             ObjectNode term = must.addObject().putObject("term");
             term.putObject("contentType").put("value", contentType);
@@ -63,17 +78,20 @@ public class SearchResource {
             term.putObject("tags").put("value", tag);
         }
 
-        // Highlighting
+        // Configure highlighting to show snippets of matching text in the search results
         ObjectNode highlight = root.putObject("highlight");
         highlight.put("pre_tags", "<em>").put("post_tags", "</em>");
         ObjectNode fields = highlight.putObject("fields");
+        // We want highlight fragments from the content field
         fields.putObject("content").put("number_of_fragments", 3).put("fragment_size", 150);
         fields.putObject("filename");
 
-        // Execute
         return executeSearch(root);
     }
 
+    /**
+     * Sends the DSL query to Elasticsearch and transforms the response into a frontend-friendly format.
+     */
     private JsonNode executeSearch(ObjectNode dsl) throws IOException {
         Request request = new Request("GET", "/" + INDEX + "/_search");
         request.setJsonEntity(mapper.writeValueAsString(dsl));
@@ -83,7 +101,7 @@ public class SearchResource {
             String responseBody = EntityUtils.toString(response.getEntity());
             JsonNode esResponse = mapper.readTree(responseBody);
 
-            // Transform ES response to Frontend Contract
+            // Transform ES response to Frontend Contract (mapping _source and highlight fields)
             ObjectNode result = mapper.createObjectNode();
             ArrayNode items = result.putArray("items");
 
@@ -93,10 +111,11 @@ public class SearchResource {
                     JsonNode source = hit.path("_source");
                     ObjectNode item = items.addObject();
                     item.put("id", hit.path("_id").asText());
-                    // Copy fields
+                    
+                    // Copy all fields from the original document
                     item.setAll((ObjectNode) source);
                     
-                    // Add Highlights
+                    // Attach highlights if present in the ES response
                     JsonNode highlight = hit.path("highlight");
                     if (!highlight.isMissingNode()) {
                         ObjectNode highlightObj = item.putObject("highlights");
@@ -110,7 +129,7 @@ public class SearchResource {
             result.put("total", esResponse.path("hits").path("total").path("value").asLong());
             return result;
         } catch (Exception e) {
-             // If index doesn't exist yet, return empty
+             // Gracefully handle cases where the index doesn't exist yet (e.g. before any uploads)
             if (e.getMessage().contains("index_not_found_exception")) {
                 ObjectNode empty = mapper.createObjectNode();
                 empty.putArray("items");

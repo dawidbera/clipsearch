@@ -31,11 +31,19 @@ import java.time.Instant;
 import java.util.HexFormat;
 import java.util.List;
 
+/**
+ * Background worker that processes file upload events from SQS.
+ * It downloads content from S3, extracts text using Apache Tika, 
+ * optionally generates AI summaries, and indexes the resulting metadata into Elasticsearch.
+ */
 @ApplicationScoped
 public class IndexWorker {
 
     private static final Logger log = Logger.getLogger(IndexWorker.class);
 
+    /**
+     * AI Service interface for generating summaries using LLMs.
+     */
     @RegisterAiService
     public interface AiService {
         @UserMessage("Summarize the following text in 2-3 short bullet points in English. " +
@@ -71,6 +79,10 @@ public class IndexWorker {
     @ConfigProperty(name = "clipsearch.ai.enabled", defaultValue = "true")
     boolean aiEnabled;
 
+    /**
+     * Periodically polls the SQS queue for new upload events.
+     * Scheduled to run every 5 seconds.
+     */
     @Scheduled(every = "5s")
     void poll() {
         try {
@@ -92,12 +104,21 @@ public class IndexWorker {
         }
     }
 
+    /**
+     * Orchestrates the ingestion of a single file:
+     * 1. Fetches raw bytes from S3.
+     * 2. Calculates SHA256 for integrity and deduplication checks.
+     * 3. Extracts text content based on MIME type (Tika for PDFs/Images).
+     * 4. Requests an AI summary for text-heavy documents.
+     * 5. Persists the enriched metadata into Elasticsearch.
+     * 6. Acknowledges (deletes) the SQS message upon success.
+     */
     private void processMessage(String queueUrl, Message message) {
         try {
             SqsEvent event = mapper.readValue(message.body(), SqsEvent.class);
             log.infof("Processing file: %s/%s", event.getBucket(), event.getKey());
 
-            // 1. Get from S3
+            // 1. Fetch raw content from S3 bucket
             GetObjectRequest getRequest = GetObjectRequest.builder()
                     .bucket(event.getBucket())
                     .key(event.getKey())
@@ -108,12 +129,12 @@ public class IndexWorker {
                 contentBytes = s3Stream.readAllBytes();
             }
 
-            // 2. Calculate SHA256
+            // 2. Calculate SHA256 hash to identify the file content uniquely
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(contentBytes);
             String sha256 = HexFormat.of().formatHex(hash);
 
-            // 3. Prepare ES Document
+            // 3. Construct the Elasticsearch document with metadata
             ObjectNode doc = mapper.createObjectNode();
             doc.put("uploadId", event.getUploadId());
             doc.put("filename", event.getFilename());
@@ -130,7 +151,8 @@ public class IndexWorker {
                 event.getTags().forEach(tagsArray::add);
             }
 
-            // 4. Content extraction (if text/plain, application/pdf or image/*)
+            // 4. Content extraction: use direct string conversion for text files, 
+            // or Apache Tika for complex formats like PDF or images (OCR).
             String extractedContent = null;
             String contentType = event.getContentType();
             
@@ -146,17 +168,18 @@ public class IndexWorker {
             }
 
             if (extractedContent != null) {
-                // Limit to 256KB as per spec
+                // Limit extracted text to 256KB to avoid hitting Elasticsearch document size limits
+                // and to keep search performance optimal.
                 if (extractedContent.length() > 256 * 1024) {
                     extractedContent = extractedContent.substring(0, 256 * 1024);
                 }
                 doc.put("content", extractedContent);
 
-                // AI Summarization
+                // AI Summarization: Only run if enabled and there is enough content to summarize (>50 chars).
                 if (aiEnabled && extractedContent.trim().length() > 50) {
                     try {
                         log.infof("Generating AI summary for %s", event.getFilename());
-                        // Send max 5000 chars to AI for summary
+                        // Send max 5000 chars to AI to stay within typical LLM context window/token limits
                         String textToSummarize = extractedContent.substring(0, Math.min(extractedContent.length(), 5000));
                         
                         String summary = aiService.summarize(textToSummarize);
@@ -169,7 +192,7 @@ public class IndexWorker {
                 }
             }
 
-            // 5. Index to ES
+            // 5. Index the document into Elasticsearch using the uploadId as the document ID
             String docId = event.getUploadId();
             Request esRequest = new Request("PUT", "/" + esIndex + "/_doc/" + docId);
             esRequest.setJsonEntity(mapper.writeValueAsString(doc));
@@ -177,7 +200,7 @@ public class IndexWorker {
 
             log.infof("Successfully indexed document: %s", docId);
 
-            // 6. Delete from SQS
+            // 6. Delete the message from SQS to mark it as successfully processed
             sqs.deleteMessage(DeleteMessageRequest.builder()
                     .queueUrl(queueUrl)
                     .receiptHandle(message.receiptHandle())

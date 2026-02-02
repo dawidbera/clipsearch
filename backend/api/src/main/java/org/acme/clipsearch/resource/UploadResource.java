@@ -39,6 +39,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * REST API Resource for managing file uploads, downloads, and deletion.
+ * Interfaces with AWS S3 for storage and AWS SQS for event-driven indexing.
+ */
 @Path("/api/uploads")
 public class UploadResource {
 
@@ -76,6 +80,14 @@ public class UploadResource {
 
     private static final String INDEX = "clipsearch-uploads";
 
+    /**
+     * Handles file uploads. Saves the file to S3 and sends a notification to SQS 
+     * for the background worker to start indexing.
+     * 
+     * @param file The multipart file upload.
+     * @param tagsRaw A comma-separated string of tags.
+     * @return Metadata about the uploaded file.
+     */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
@@ -83,6 +95,8 @@ public class UploadResource {
                                  @RestForm("tags") String tagsRaw) throws Exception {
         String uploadId = UUID.randomUUID().toString();
         String now = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
+        
+        // Organize files in S3 by date for better manageability
         String datePath = DateTimeFormatter.ofPattern("yyyy/MM/dd")
                 .withZone(ZoneId.of("UTC"))
                 .format(Instant.now());
@@ -93,12 +107,14 @@ public class UploadResource {
                 ? Collections.emptyList() 
                 : Arrays.stream(tagsRaw.split(",")).map(String::trim).collect(Collectors.toList());
 
+        // 1. Persist the file in S3
         s3.putObject(PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
                 .contentType(file.contentType())
                 .build(), RequestBody.fromFile(file.uploadedFile()));
 
+        // 2. Prepare and send an event to SQS to trigger background processing (indexing/AI)
         SqsEvent event = SqsEvent.builder()
                 .uploadId(uploadId)
                 .bucket(bucketName)
@@ -126,11 +142,17 @@ public class UploadResource {
                 .build();
     }
 
+    /**
+     * Generates a short-lived presigned URL for secure file download directly from S3.
+     * 
+     * @param id The upload identifier.
+     * @return A JSON object containing the presigned URL.
+     */
     @GET
     @Path("/{id}/download")
     @Produces(MediaType.APPLICATION_JSON)
     public JsonNode getDownloadUrl(@PathParam("id") String id) throws IOException {
-        // 1. Find in ES to get bucket and key
+        // 1. Retrieve the bucket and key from Elasticsearch
         Request esRequest = new Request("GET", "/" + INDEX + "/_doc/" + id);
         Response response = restClient.performRequest(esRequest);
         JsonNode doc = mapper.readTree(EntityUtils.toString(response.getEntity()));
@@ -141,7 +163,8 @@ public class UploadResource {
 
         log.infof("Generating download URL for id: %s, bucket: %s, key: %s, using endpoint: %s", id, bucket, key, publicS3Endpoint);
 
-        // 2. Generate Presigned URL using PUBLIC endpoint
+        // 2. Create a presigned URL. We use a dedicated S3Presigner with the public endpoint 
+        // to ensure the URL is reachable by the client's browser.
         try (S3Presigner presigner = S3Presigner.builder()
                 .endpointOverride(java.net.URI.create(publicS3Endpoint))
                 .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
@@ -168,6 +191,9 @@ public class UploadResource {
         }
     }
 
+    /**
+     * Lists recent uploads by querying Elasticsearch.
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public JsonNode listUploads(@QueryParam("limit") @DefaultValue("50") int limit) throws IOException {
@@ -179,11 +205,16 @@ public class UploadResource {
         return executeSearch(root);
     }
 
+    /**
+     * Deletes an upload from both S3 storage and the Elasticsearch index.
+     * 
+     * @param id The upload identifier.
+     */
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public jakarta.ws.rs.core.Response delete(@PathParam("id") String id) throws IOException {
-        // 1. Find in ES to get bucket and key
+        // 1. Find the document in ES to identify the S3 location
         Request esGetRequest = new Request("GET", "/" + INDEX + "/_doc/" + id);
         try {
             Response esResponse = restClient.performRequest(esGetRequest);
@@ -193,17 +224,17 @@ public class UploadResource {
             String bucket = source.path("bucket").asText();
             String key = source.path("key").asText();
 
-            // 2. Delete from S3
+            // 2. Remove from S3
             s3.deleteObject(software.amazon.awssdk.services.s3.model.DeleteObjectRequest.builder()
                     .bucket(bucket)
                     .key(key)
                     .build());
 
-            // 3. Delete from ES
+            // 3. Remove from Elasticsearch
             Request esDeleteRequest = new Request("DELETE", "/" + INDEX + "/_doc/" + id);
             restClient.performRequest(esDeleteRequest);
 
-            // 4. Force Index Refresh (important for near-real-time search)
+            // 4. Force an index refresh so the deletion is immediately reflected in search results
             Request refreshRequest = new Request("POST", "/" + INDEX + "/_refresh");
             restClient.performRequest(refreshRequest);
 
