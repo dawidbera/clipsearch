@@ -1,8 +1,13 @@
+# RHOAI Model Serving Activation ConfigMap
+# Enables the model serving component in Red Hat OpenAI (RHOAI) Dashboard
+# Label signals to OpenDataHub dashboard that model serving is available
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: model-serving-config
   labels:
+    # Label indicates this ConfigMap is relevant to OpenDataHub dashboard
     opendatahub.io/dashboard: "true"
 data:
+  # Flag to enable model serving functionality
   config: "enabled"

@@ -1,3 +1,7 @@
+# Continuous Integration Workflow
+# Builds and pushes Docker images for API, Worker, and Frontend to GitHub Container Registry
+# Triggered on push to main branch or pull requests
+
 name: CI - Build and Push
 
 on:

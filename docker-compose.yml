@@ -1,26 +1,35 @@
+# Docker Compose Configuration for ClipSearch Development Environment
+# Defines all services needed to run the complete ClipSearch application locally
+# Services communicate via the default Docker network
+
 services:
+  # LocalStack: AWS service emulator for S3 and SQS
   localstack:
     image: localstack/localstack:4.12.0
     ports:
-      - "4566:4566"
+      - "4566:4566"              # LocalStack endpoint for all AWS services
     environment:
-      - SERVICES=s3,sqs
-      - DEBUG=0
+      - SERVICES=s3,sqs          # Enable S3 storage and SQS messaging
+      - DEBUG=0                  # Debug logging disabled
     volumes:
+      # Mount initialization script for setting up S3 bucket and queue
       - "./scripts/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh"
 
+  # Elasticsearch: Full-text search engine
   elasticsearch:
     image: elasticsearch:8.19.10
     ports:
-      - "9200:9200"
+      - "9200:9200"              # Elasticsearch REST API
     environment:
-      - discovery.type=single-node
-      - node.store.allow_mmap=false
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - discovery.type=single-node  # Single-node cluster (no clustering)
+      - node.store.allow_mmap=false # Disable memory mapping for development
+      - xpack.security.enabled=false # Disable authentication for local dev
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m # Java heap size allocation
     volumes:
+      # Persist search indices across container restarts
       - es_data:/usr/share/elasticsearch/data
 
+  # REST API: Quarkus-based backend for search and file upload
   api:
     build:
       context: ./backend
@@ -28,40 +37,52 @@ services:
     networks:
       default:
         aliases:
-          - clipsearch-api
+          - clipsearch-api          # Service hostname for internal communication
     ports:
-      - "8080:8080"
+      - "8080:8080"               # REST API port
     environment:
+      # LocalStack endpoints for S3 and SQS
       - S3_ENDPOINT=http://localstack:4566
       - SQS_ENDPOINT=http://localstack:4566
+      # Elasticsearch endpoint for indexing and searching
       - ES_URL=elasticsearch:9200
+      # AWS credentials (dummy values for local testing)
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_REGION=us-east-1
+      # Application-specific configuration
       - S3_BUCKET=clipsearch
       - SQS_QUEUE_NAME=clipsearch-index-queue
+      # Enable CORS for frontend requests
       - QUARKUS_HTTP_CORS=true
     depends_on:
       - localstack
       - elasticsearch
 
+  # Worker: Message processor for file indexing and AI analysis
   worker:
     build:
       context: ./backend
       dockerfile: worker/Dockerfile
     environment:
+      # LocalStack endpoints for S3 and SQS
       - S3_ENDPOINT=http://localstack:4566
       - SQS_ENDPOINT=http://localstack:4566
+      # Elasticsearch endpoint for storing indexed content
       - ES_URL=elasticsearch:9200
+      # Ollama (LLM) service for embeddings generation
       - RHOAI_BASE_URL=http://ollama:11434/v1
       - RHOAI_API_KEY=none
       - RHOAI_MODEL_NAME=tinyllama
+      # AWS credentials (dummy values for local testing)
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_REGION=us-east-1
+      # Application-specific configuration
       - S3_BUCKET=clipsearch
       - SQS_QUEUE_NAME=clipsearch-index-queue
     extra_hosts:
+      # Allow worker to connect to host machine services
       - "host.docker.internal:host-gateway"
     depends_on:
       - localstack
@@ -69,25 +90,31 @@ services:
       - api
       - ollama
 
+  # Ollama: Local LLM server for embeddings and content analysis
   ollama:
     image: ollama/ollama:latest
     ports:
-      - "11435:11434"
+      - "11435:11434"             # Ollama API port (mapped from 11434 to 11435)
     volumes:
+      # Persist downloaded models across container restarts
       - ollama_data:/root/.ollama
-    # Automatically pull the model on startup
+    # Custom startup: serve Ollama and automatically pull the tinyllama model
     entrypoint: /bin/sh
     command: -c "ollama serve & sleep 10 && ollama pull tinyllama && wait"
 
+  # Frontend: Angular web UI served by Nginx
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "4200:8080"
+      - "4200:8080"               # Web UI accessible at localhost:4200
     depends_on:
-      - api
+      - api                        # Frontend communicates with API for search/upload
 
+# Named volumes for data persistence
 volumes:
+  # Elasticsearch index storage
   es_data:
+  # Ollama model storage
   ollama_data:

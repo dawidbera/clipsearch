@@ -1,21 +1,35 @@
+# OpenShift Sandbox Environment Kustomization Overlay
+# Customizes the base ClipSearch deployment for OpenShift with:
+# - OpenShift Routes for external access
+# - Internal container registry image references
+# - Name suffix hashing disabled for stable resource names
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+# Include base resources from parent directory
 resources:
-  - ../../base
-  - routes.yaml
+  - ../../base              # Base resources (API, Worker, Frontend, Elasticsearch, etc.)
+  - routes.yaml             # OpenShift routes for external traffic
 
-# Overriding images to use internal OpenShift ImageStreams
+# Override Docker image references to use internal OpenShift registry
+# This allows deployments to pull images from the internal container registry
 images:
+  # API service image from OpenShift internal registry
   - name: clipsearch-api
     newName: image-registry.openshift-image-registry.svc:5000/dawidbera-dev/clipsearch-api
     newTag: latest
+  # Worker service image from OpenShift internal registry
   - name: clipsearch-worker
     newName: image-registry.openshift-image-registry.svc:5000/dawidbera-dev/clipsearch-worker
     newTag: latest
+  # Frontend service image from OpenShift internal registry
   - name: clipsearch-frontend
     newName: image-registry.openshift-image-registry.svc:5000/dawidbera-dev/clipsearch-frontend
     newTag: latest
 
+# Generator options for ConfigMap and Secret handling
 generatorOptions:
+  # Disable automatic name suffix hashing to use stable resource names
+  # This allows ConfigMaps and Secrets to have predictable names
   disableNameSuffixHash: true

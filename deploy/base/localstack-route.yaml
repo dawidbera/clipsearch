@@ -1,16 +1,26 @@
+# LocalStack OpenShift Route
+# Exposes LocalStack S3 and SQS endpoints externally for development and testing
+# Provides HTTPS access to mock AWS services from outside the cluster
+
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: localstack
   namespace: dawidbera-dev
 spec:
+  # Route traffic to the LocalStack service
   to:
     kind: Service
     name: localstack
-    weight: 100
+    weight: 100              # 100% of traffic goes to this service
+  # Target the LocalStack unified endpoint port
   port:
-    targetPort: 4566
+    targetPort: 4566        # LocalStack serves all services on port 4566
+  # TLS configuration for HTTPS access
   tls:
+    # Edge termination: TLS termination at the route
     termination: edge
+    # Allow unencrypted HTTP traffic (for local development)
     insecureEdgeTerminationPolicy: Allow
+  # No wildcard routing
   wildcardPolicy: None

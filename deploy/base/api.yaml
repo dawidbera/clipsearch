@@ -1,8 +1,12 @@
+# ClipSearch API Deployment Configuration
+# Deploys the Quarkus-based REST API service for search and file upload functionality
+# The API interfaces with Elasticsearch for search and S3/SQS for file processing
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: clipsearch-api
 spec:
+  # Single replica for the API service
   replicas: 1
   selector:
     matchLabels:
@@ -14,15 +18,19 @@ spec:
     spec:
       containers:
         - name: clipsearch-api
+          # Uses the pre-built clipsearch-api Docker image
           image: clipsearch-api:latest
           imagePullPolicy: Always
+          # Service listens on port 8080
           ports:
             - containerPort: 8080
+          # Load configuration and AWS credentials from ConfigMap and Secret
           envFrom:
             - configMapRef:
                 name: clipsearch-config
             - secretRef:
                 name: clipsearch-aws-secret
+          # Resource requests and limits for Kubernetes scheduling
           resources:
             requests:
               memory: "256Mi"
@@ -30,12 +38,16 @@ spec:
             limits:
               memory: "384Mi"
               cpu: "250m"
+          # Readiness probe checks if the service is ready to accept traffic
+          # Uses Quarkus health endpoint
           readinessProbe:
             httpGet:
               path: /q/health/ready
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
+          # Liveness probe checks if the service is still running
+          # Restarts the pod if unhealthy
           livenessProbe:
             httpGet:
               path: /q/health/live
@@ -43,6 +55,8 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 20
 ---
+# Service to expose the API Deployment
+# Creates a Kubernetes Service that routes traffic to the API pod
 apiVersion: v1
 kind: Service
 metadata:
@@ -51,5 +65,6 @@ spec:
   selector:
     app: clipsearch-api
   ports:
+    # Internal cluster port 8080 routes to the container port 8080
     - port: 8080
       targetPort: 8080

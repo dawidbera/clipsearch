@@ -1,16 +1,30 @@
+# ClipSearch Configuration ConfigMap
+# Contains application configuration for cloud services (S3, SQS), search (Elasticsearch),
+# and AI/LLM services (RHOAI). Used by both API and Worker deployments.
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: clipsearch-config
 data:
+  # External S3 endpoint accessible from outside the cluster
   S3_ENDPOINT: "https://localstack-dawidbera-dev.apps.rm2.thpm.p1.openshiftapps.com"
+  # Public-facing S3 endpoint for client downloads
   CLIPSEARCH_PUBLIC_S3_ENDPOINT: "https://localstack-dawidbera-dev.apps.rm2.thpm.p1.openshiftapps.com"
+  # Internal S3 endpoint for pod-to-pod communication within cluster
   S3_ENDPOINT_INTERNAL: "http://localstack:4566"
+  # SQS endpoint for message queue (co-located with S3 in LocalStack)
   SQS_ENDPOINT: "http://localstack:4566"
+  # Elasticsearch URL for search index operations
   ES_URL: "elasticsearch:9200"
+  # S3 bucket name for storing uploaded files
   S3_BUCKET: "clipsearch"
+  # SQS queue name for file indexing events
   SQS_QUEUE_NAME: "clipsearch-index-queue"
+  # CORS allowed origins for frontend cross-origin requests
   ALLOWED_ORIGINS: "*"
+  # Red Hat OpenAI base URL for embeddings generation
   RHOAI_BASE_URL: "http://llm-standalone.dawidbera-dev.svc.cluster.local:80/v1"
+  # Model name to use for embeddings (tinyllama for lightweight local inference)
   RHOAI_MODEL_NAME: "tinyllama"
+  # Flag to enable/disable AI-powered features
   AI_ENABLED: "true"

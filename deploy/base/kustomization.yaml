@@ -1,12 +1,20 @@
+# Kustomization Base Configuration
+# Defines the collection of Kubernetes resources that make up the ClipSearch application
+# All resources are included by default when deploying to a cluster
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+# List of resource files to include in the deployment
 resources:
-  - config.yaml
-  - localstack.yaml
-  - localstack-route.yaml
-  - localstack-init.yaml
-  - elasticsearch.yaml
-  - api.yaml
-  - worker.yaml
-  - frontend.yaml
+  # Configuration
+  - config.yaml                 # Application configuration (S3, SQS, Elasticsearch URLs)
+  # Cloud Services
+  - localstack.yaml             # AWS service emulator (S3, SQS)
+  - localstack-route.yaml       # OpenShift route for external access to LocalStack
+  - localstack-init.yaml        # LocalStack initialization scripts
+  # Search Engine
+  - elasticsearch.yaml          # Full-text search engine and index storage
+  # Application Services
+  - api.yaml                    # REST API for search and file upload
+  - worker.yaml                 # Message processor for file indexing
+  - frontend.yaml               # Web UI (Angular + Nginx)

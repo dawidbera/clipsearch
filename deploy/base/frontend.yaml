@@ -1,8 +1,12 @@
+# ClipSearch Frontend Deployment Configuration
+# Deploys the Angular-based web UI served by Nginx
+# Provides the user interface for searching documents and uploading files
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: clipsearch-frontend
 spec:
+  # Single replica for the frontend service
   replicas: 1
   selector:
     matchLabels:
@@ -14,10 +18,14 @@ spec:
     spec:
       containers:
         - name: clipsearch-frontend
+          # Uses the pre-built clipsearch-frontend Docker image (Nginx server)
           image: clipsearch-frontend:latest
           imagePullPolicy: Always
+          # Frontend web server listens on port 8080
           ports:
             - containerPort: 8080
+          # Resource requests and limits for Kubernetes scheduling
+          # Frontend typically requires minimal resources
           resources:
             requests:
               memory: "64Mi"
@@ -25,12 +33,16 @@ spec:
             limits:
               memory: "128Mi"
               cpu: "250m"
+          # Readiness probe checks if the web server is ready to serve requests
+          # Checks the root path (/index.html)
           readinessProbe:
             httpGet:
               path: /
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
+          # Liveness probe checks if the web server is still running
+          # Restarts the pod if it becomes unhealthy
           livenessProbe:
             httpGet:
               path: /
@@ -38,6 +50,8 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 20
 ---
+# Service to expose the Frontend Deployment
+# Creates a Kubernetes Service that routes traffic to the frontend pod
 apiVersion: v1
 kind: Service
 metadata:
@@ -46,5 +60,6 @@ spec:
   selector:
     app: clipsearch-frontend
   ports:
+    # Internal cluster port 8080 routes to the container port 8080
     - port: 8080
       targetPort: 8080

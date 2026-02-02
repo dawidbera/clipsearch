@@ -1,8 +1,12 @@
+# Elasticsearch Deployment Configuration
+# Deploys Elasticsearch for full-text search indexing and document storage
+# Stores searchable content and handles search queries from the API
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: elasticsearch
 spec:
+  # Single node Elasticsearch cluster
   replicas: 1
   selector:
     matchLabels:
@@ -14,18 +18,25 @@ spec:
     spec:
       containers:
         - name: elasticsearch
+          # Official Elasticsearch image version 8.19.10
           image: elasticsearch:8.19.10
           env:
+            # Single-node cluster mode (no cluster formation needed)
             - name: discovery.type
               value: "single-node"
+            # Disable memory mapping for local development
             - name: node.store.allow_mmap
               value: "false"
+            # Disable X-Pack security for simpler local setup
             - name: xpack.security.enabled
               value: "false"
+            # Java heap size allocation for Elasticsearch JVM
             - name: ES_JAVA_OPTS
               value: "-Xms256m -Xmx256m"
+          # Elasticsearch REST API port
           ports:
             - containerPort: 9200
+          # Resource requests and limits
           resources:
             requests:
               memory: "512Mi"
@@ -33,31 +44,39 @@ spec:
             limits:
               memory: "1Gi"
               cpu: "500m"
+          # Mount persistent storage for Elasticsearch data
           volumeMounts:
             - name: es-data
               mountPath: /usr/share/elasticsearch/data
+          # Readiness probe checks cluster health status
           readinessProbe:
             httpGet:
               path: /_cluster/health
               port: 9200
             initialDelaySeconds: 20
             periodSeconds: 10
+      # Persistent volume for storing searchable indices
       volumes:
         - name: es-data
           persistentVolumeClaim:
             claimName: elasticsearch-pvc
 ---
+# PersistentVolumeClaim for Elasticsearch data storage
+# Ensures data persists across pod restarts
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: elasticsearch-pvc
 spec:
   accessModes:
+    # Allow read/write by a single pod at a time
     - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
+      storage: 5Gi  # 5 GB storage for search indices
 ---
+# Service to expose Elasticsearch
+# Provides internal cluster access to the Elasticsearch API
 apiVersion: v1
 kind: Service
 metadata:
@@ -66,5 +85,6 @@ spec:
   selector:
     app: elasticsearch
   ports:
+    # Port 9200 is the standard Elasticsearch REST API port
     - port: 9200
       targetPort: 9200

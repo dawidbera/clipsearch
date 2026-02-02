@@ -1,27 +1,43 @@
+# OpenShift Routes for External Access
+# Routes expose services to external traffic with TLS encryption
+# OpenShift-specific resource for ingress (equivalent to Kubernetes Ingress)
+
+# Frontend route for web UI access
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: clipsearch-frontend
 spec:
+  # Route traffic to the frontend service
   to:
     kind: Service
     name: clipsearch-frontend
+  # Target the service port
   port:
     targetPort: 8080
+  # TLS configuration for HTTPS
   tls:
+    # Edge termination: TLS certificate at the route, plain HTTP to pod
     termination: edge
+    # Redirect HTTP to HTTPS automatically
     insecureEdgeTerminationPolicy: Redirect
 ---
+# API route for REST endpoint access
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: clipsearch-api
 spec:
+  # Route traffic to the API service
   to:
     kind: Service
     name: clipsearch-api
+  # Target the service port
   port:
     targetPort: 8080
+  # TLS configuration for HTTPS
   tls:
+    # Edge termination: TLS certificate at the route, plain HTTP to pod
     termination: edge
+    # Redirect HTTP to HTTPS automatically
     insecureEdgeTerminationPolicy: Redirect

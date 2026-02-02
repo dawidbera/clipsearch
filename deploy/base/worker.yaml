@@ -1,8 +1,12 @@
+# ClipSearch Worker Deployment Configuration
+# Deploys the message processing worker that handles file indexing and AI-powered content analysis
+# The worker polls SQS for upload events, fetches files from S3, and indexes them in Elasticsearch
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: clipsearch-worker
 spec:
+  # Single replica for the worker service
   replicas: 1
   selector:
     matchLabels:
@@ -14,19 +18,25 @@ spec:
     spec:
       containers:
         - name: clipsearch-worker
+          # Uses the pre-built clipsearch-worker Docker image
           image: clipsearch-worker:latest
           imagePullPolicy: Always
+          # Load AWS configuration and general application config from ConfigMap and Secret
           envFrom:
             - configMapRef:
                 name: clipsearch-config
             - secretRef:
                 name: clipsearch-aws-secret
+          # Additional environment variables for RHOAI/LLM integration
           env:
+            # API key for Red Hat OpenAI service for embeddings and content analysis
             - name: RHOAI_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: clipsearch-rhoai-secret
                   key: RHOAI_API_KEY
+          # Resource requests and limits for Kubernetes scheduling
+          # Worker typically requires more CPU than API for content processing
           resources:
             requests:
               memory: "256Mi"
@@ -34,12 +44,15 @@ spec:
             limits:
               memory: "384Mi"
               cpu: "500m"
+          # Readiness probe checks if the worker is ready to process messages
           readinessProbe:
             httpGet:
               path: /q/health/ready
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
+          # Liveness probe checks if the worker is still running
+          # Restarts the pod if it becomes unhealthy
           livenessProbe:
             httpGet:
               path: /q/health/live

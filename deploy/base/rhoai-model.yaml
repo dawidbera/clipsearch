@@ -1,14 +1,23 @@
+# RHOAI Model Serving Configuration
+# Defines the serving runtime and inference service for LLM models
+# Uses KServe for model deployment and serving
+
+# ServingRuntime: Specifies the runtime environment for model inference
+# This runtime uses OpenVINO Model Server for optimized inference
 apiVersion: serving.kserve.io/v1alpha1
 kind: ServingRuntime
 metadata:
   name: llm-server
 spec:
+  # Supported model formats for this runtime
   supportedModelFormats:
-    - name: openvino_ir
-      version: "opset1"
+    - name: openvino_ir           # OpenVINO Intermediate Representation format
+      version: "opset1"           # ONNX opset version 1
+  # Container specification for the serving runtime
   containers:
-    - name: ovms
+    - name: ovms                   # OpenVINO Model Server
       image: quay.io/opendatahub/openvino_model_server:v2024.4
+      # Resource allocation for inference
       resources:
         requests:
           cpu: "100m"
@@ -16,20 +25,28 @@ spec:
         limits:
           cpu: "1"
           memory: "1Gi"
+  # Enable multi-model serving to host multiple models
   multiModel: true
 ---
+# InferenceService: Defines the actual model deployment and access patterns
+# This service provides the inference endpoint for embeddings generation
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
   name: llm-model
   annotations:
+    # Use ModelMesh for multi-model management and routing
     serving.kserve.io/deploymentMode: ModelMesh
 spec:
+  # Predictor configuration for the inference model
   predictor:
     model:
+      # Model format specification
       modelFormat:
-        name: openvino_ir
+        name: openvino_ir         # Using OpenVINO format
         version: "opset1"
+      # Runtime to use for this model
       runtime: llm-server
+      # Storage connection for accessing model artifacts
       storage:
-        key: tiny-llama-connection
+        key: tiny-llama-connection  # Reference to stored model connection

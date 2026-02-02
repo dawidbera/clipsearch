@@ -1,8 +1,12 @@
+# Ollama Standalone LLM Deployment
+# Provides a local large language model (tinyllama) for embeddings generation
+# Used by the worker to create semantic embeddings for file content
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: llm-standalone
 spec:
+  # Single replica of Ollama service
   replicas: 1
   selector:
     matchLabels:
@@ -12,16 +16,22 @@ spec:
       labels:
         app: llm-standalone
     spec:
+      # Main container running Ollama LLM server
       containers:
         - name: ollama
+          # Ollama Docker image with model inference capability
           image: ollama/ollama:latest
+          # Ollama API port
           ports:
             - containerPort: 11434
           env:
+            # Listen on all network interfaces
             - name: OLLAMA_HOST
               value: "0.0.0.0"
+            # Home directory for model storage
             - name: HOME
               value: "/tmp"
+          # Resource requests and limits (GPU-intensive for inference)
           resources:
             requests:
               memory: "1Gi"
@@ -29,13 +39,16 @@ spec:
             limits:
               memory: "2Gi"
               cpu: "2"
+          # Mount persistent storage for downloaded models
           volumeMounts:
             - name: ollama-data
               mountPath: /tmp/.ollama
+      # Init container to pre-download the model during pod startup
       initContainers:
         - name: pull-model
           image: ollama/ollama:latest
           command: ["sh", "-c"]
+          # Start Ollama server, wait, download tinyllama model, then stop
           args:
             - |
               ollama serve & 
@@ -45,20 +58,25 @@ spec:
           env:
             - name: HOME
               value: "/tmp"
+          # Mount same persistent storage as main container
           volumeMounts:
             - name: ollama-data
               mountPath: /tmp/.ollama
+      # EmptyDir for ephemeral model storage
       volumes:
         - name: ollama-data
           emptyDir: {}
 ---
+# Service to expose Ollama
+# Provides cluster-internal access to the LLM inference API
 apiVersion: v1
 kind: Service
 metadata:
   name: llm-standalone
 spec:
   selector:
-    app: llm-standalone
+    app: llama-standalone
   ports:
+    # Port 80 externally, 11434 internally for Ollama API
     - port: 80
       targetPort: 11434

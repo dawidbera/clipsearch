@@ -1,8 +1,12 @@
+# LocalStack Deployment Configuration
+# LocalStack is a local cloud emulator that simulates AWS services
+# Provides S3 (object storage) and SQS (message queue) for local development and testing
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: localstack
 spec:
+  # Single replica of LocalStack service
   replicas: 1
   selector:
     matchLabels:
@@ -14,20 +18,28 @@ spec:
     spec:
       containers:
         - name: localstack
+          # LocalStack Docker image provides AWS service emulation
           image: localstack/localstack:4.12.0
           env:
+            # Enable S3 (storage) and SQS (queue) services
             - name: SERVICES
               value: "s3,sqs"
+            # Data directory for persistent storage
             - name: DATA_DIR
               value: "/tmp/localstack/data"
+            # Logging level for LocalStack
             - name: LS_LOG
               value: "debug"
+            # LocalStack hostname for service communication
             - name: LOCALSTACK_HOST
               value: "localstack"
+            # Home directory for temporary files
             - name: HOME
               value: "/tmp"
+          # All AWS services are accessed through port 4566
           ports:
             - containerPort: 4566
+          # Resource requests and limits
           resources:
             requests:
               memory: "256Mi"
@@ -35,29 +47,37 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+          # TCP readiness check on port 4566
           readinessProbe:
             tcpSocket:
               port: 4566
             initialDelaySeconds: 10
             periodSeconds: 10
+          # TCP liveness check for pod restart on failure
           livenessProbe:
             tcpSocket:
               port: 4566
             initialDelaySeconds: 15
             periodSeconds: 20
+          # Mount temporary storage and initialization scripts
           volumeMounts:
             - name: tmp-storage
               mountPath: /tmp
             - name: init-scripts
               mountPath: /etc/localstack/init/ready.d
+      # Volumes for temporary storage and initialization
       volumes:
+        # EmptyDir storage that exists for the pod lifetime
         - name: tmp-storage
           emptyDir: {}
+        # Mount initialization scripts from ConfigMap
         - name: init-scripts
           configMap:
             name: localstack-init
             defaultMode: 0755
 ---
+# Service to expose LocalStack
+# Provides cluster-internal access to S3 and SQS emulation
 apiVersion: v1
 kind: Service
 metadata:
@@ -66,5 +86,6 @@ spec:
   selector:
     app: localstack
   ports:
+    # Port 4566 is LocalStack's unified endpoint for all AWS services
     - port: 4566
       targetPort: 4566
